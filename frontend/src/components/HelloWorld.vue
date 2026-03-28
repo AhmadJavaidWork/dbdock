@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BaseBorderButton from '@/components/buttons/BaseBorderButton.vue'
 import { ref } from 'vue'
 import { Greet } from '~/wailsjs/go/main/App'
 
@@ -13,13 +14,14 @@ function greet() {
 </script>
 
 <template>
-  <div class="p-6 sans text-lg">
-    <h1 class="text-3xl">Welcome to DBDock</h1>
-    <p class="mt-4 text-gray-700 font-sans">
-      Offline-ready database client with bundled fonts.
+  <div
+    class="p-6 rounded-lg-background-light dark:bg-background-dark text-text-light dark:text-text-dark"
+  >
+    <h1 class="text-3xl font-bold mb-4">Welcome to DBDock</h1>
+    <BaseBorderButton>Click me</BaseBorderButton>
+    <BaseBorderButton variant="danger">Click me</BaseBorderButton>
+    <p class="mt-4 text-text-secondary dark:text-secondary-dark">
+      This text changes automatically in dark mode.
     </p>
-    <pre class="mt-6 p-4 bg-gray-100 rounded font-mono text-sm">
-      SELECT * FROM users WHERE active = 1;
-    </pre>
   </div>
 </template>
