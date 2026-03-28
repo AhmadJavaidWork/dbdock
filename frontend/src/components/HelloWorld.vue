@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import BaseBorderButton from '@/components/buttons/BaseBorderButton.vue'
-import { ref } from 'vue'
-import { Greet } from '~/wailsjs/go/main/App'
+import BaseBorderButton from '@/components/buttons/BaseBorderButton.vue';
+import { ref } from 'vue';
+import { Greet } from '~/wailsjs/go/main/App';
 
-const name = ref<string>('')
-const greeting = ref<string>('')
+const name = ref<string>('');
+const greeting = ref<string>('');
 
 function greet() {
   Greet(name.value).then((result) => {
-    greeting.value = result
-  })
+    greeting.value = result;
+  });
 }
 </script>
 

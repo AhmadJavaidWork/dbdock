@@ -1,71 +1,63 @@
-import { Theme } from '@/types/theme.types'
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { SetTheme } from '~/wailsjs/go/main/App'
+import { Theme } from '@/types/theme.type';
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import { SetTheme } from '~/wailsjs/go/main/App';
 
 export const useThemeStore = defineStore(
   'theme',
   () => {
-    const theme = ref<Theme>('system')
+    const theme = ref<Theme>('system');
 
     function applyTheme() {
-      const html = document.documentElement
+      const html = document.documentElement;
 
       if (theme.value === 'dark') {
-        html.classList.add('dark')
+        html.classList.add('dark');
       } else {
-        html.classList.remove('dark')
+        html.classList.remove('dark');
       }
 
-      SetTheme(theme.value === 'dark')
+      SetTheme(theme.value === 'dark');
     }
 
     function toggleTheme() {
       if (theme.value === 'dark') {
-        theme.value = 'light'
+        theme.value = 'light';
       } else if (theme.value === 'light') {
-        theme.value = 'dark'
+        theme.value = 'dark';
       } else {
-        const prefersDark = window.matchMedia(
-          '(prefers-color-scheme: dark)'
-        ).matches
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
         if (prefersDark) {
-          theme.value = 'dark'
+          theme.value = 'dark';
         } else {
-          theme.value = 'light'
+          theme.value = 'light';
         }
       }
-      applyTheme()
+      applyTheme();
     }
 
-    const prefersDark = window.matchMedia(
-      '(prefers-color-scheme: dark)'
-    ).matches
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     if (prefersDark) {
-      theme.value = 'light'
+      theme.value = 'light';
     } else {
-      theme.value = 'dark'
+      theme.value = 'dark';
     }
-    toggleTheme()
+    toggleTheme();
 
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', () => {
-        const prefersDark = window.matchMedia(
-          '(prefers-color-scheme: dark)'
-        ).matches
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        if (prefersDark) {
-          theme.value = 'light'
-        } else {
-          theme.value = 'dark'
-        }
-        toggleTheme()
-      })
+      if (prefersDark) {
+        theme.value = 'light';
+      } else {
+        theme.value = 'dark';
+      }
+      toggleTheme();
+    });
 
-    return { theme, applyTheme, toggleTheme }
+    return { theme, applyTheme, toggleTheme };
   },
   {
     persist: {
@@ -73,8 +65,8 @@ export const useThemeStore = defineStore(
       storage: localStorage,
       pick: ['theme'],
       afterHydrate: (ctx) => {
-        ctx.store.applyTheme()
-      }
-    }
+        ctx.store.applyTheme();
+      },
+    },
   }
-)
+);
