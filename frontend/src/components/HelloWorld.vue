@@ -13,17 +13,13 @@ function greet() {
 </script>
 
 <template>
-  <main class="flex flex-col items-center justify-center mt-[10px] gap-[10px]">
-    <div id="result" class="result">{{ greeting }}</div>
-    <div id="input" class="flex">
-      <input
-        id="name"
-        v-model="name"
-        autocomplete="off"
-        class="input"
-        type="text"
-      />
-      <button class="btn" @click="greet">Greet</button>
-    </div>
-  </main>
+  <div class="p-6 sans text-lg">
+    <h1 class="text-3xl">Welcome to DBDock</h1>
+    <p class="mt-4 text-gray-700 font-sans">
+      Offline-ready database client with bundled fonts.
+    </p>
+    <pre class="mt-6 p-4 bg-gray-100 rounded font-mono text-sm">
+      SELECT * FROM users WHERE active = 1;
+    </pre>
+  </div>
 </template>
