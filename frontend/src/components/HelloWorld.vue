@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Greet } from '../../wailsjs/go/main/App'
+import { Greet } from '~/wailsjs/go/main/App'
 
-const name = ref<string | null>(null)
+const name = ref<string>('')
 const greeting = ref<string>('')
 
 function greet() {
