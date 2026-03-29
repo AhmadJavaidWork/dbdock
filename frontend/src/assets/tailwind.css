@@ -117,3 +117,15 @@ body {
 .roboto {
   font-family: "Roboto", sans-serif;
 }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@layer base {
+  html {
+    font-size: 14px;
+  }
+}
