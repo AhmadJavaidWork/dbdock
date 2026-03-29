@@ -23,7 +23,7 @@ func (cs *ConnectionService) Test(conn models.DBConnection) error {
 	switch conn.Type.ID {
 	case "postgres":
 		driver = "postgres"
-		dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", conn.Host, conn.Port, conn.Username, conn.Password, conn.Database)
+		dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=prefer", conn.Host, conn.Port, conn.Username, conn.Password, conn.Database)
 	case "mysql":
 		driver = "mysql"
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", conn.Username, conn.Password, conn.Host, conn.Port, conn.Database)
