@@ -9,7 +9,6 @@ import { watch } from "vue";
 const { isOpen, options, onClose } = usePrompt();
 
 const handleKeydown = (e: KeyboardEvent) => {
-  console.log(e.key);
   if (e.key === "Escape" && isOpen.value) {
     onClose();
   }
@@ -31,7 +30,7 @@ watch(isOpen, function (newVal) {
     @click="onClose"
   >
     <div
-      class="text-text-light bg-background-light dark:bg-background-dark dark:text-text-dark rounded-prompt shadow-lg max-w-sm"
+      class="text-text-light bg-background-light dark:bg-background-dark dark:text-text-dark rounded-prompt shadow-lg w-[300px]"
       @click.stop
     >
       <div class="p-4">

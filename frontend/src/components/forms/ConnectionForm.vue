@@ -93,7 +93,7 @@ async function createConnection(): Promise<void> {
       message: "Connection Successful",
     });
   } catch (error: unknown) {
-    const message = connectionErrorToText(error, type.value, username.value);
+    const message = connectionErrorToText(error, type.value, username.value, database.value);
     prompt({
       type: "error",
       title: "Connection failed",
@@ -124,75 +124,78 @@ watch(type, function (newType) {
 </script>
 
 <template>
-  <div class="grid grid-cols-4 gap-x-[15px] gap-y-[10px]">
-    <FormTextField
-      class="col-span-4 lg:col-span-4"
-      v-model="name"
-      label="Name"
-      name="name"
-      required
-      placeholder="Connection Name"
-      :error="nameError"
-    />
-    <FormSelect
-      class="col-span-4 lg:col-span-4"
-      v-model="type"
-      label="Type"
-      name="type"
-      required
-      placeholder="Select Type"
-      option-key="id"
-      option-label="label"
-      :options="databases"
-      :error="typeError"
-    />
-    <FormTextField
-      class="col-span-4 lg:col-span-2"
-      v-model="host"
-      label="Host"
-      name="host"
-      required
-      placeholder="DB Host"
-      :error="hostError"
-    />
-    <FormTextField
-      class="col-span-4 lg:col-span-2"
-      v-model.number="port"
-      label="Port"
-      name="port"
-      required
-      placeholder="DB Port"
-      :error="portError"
-    />
-    <FormTextField
-      class="col-span-4 lg:col-span-2"
-      v-model="username"
-      label="Username"
-      name="username"
-      required
-      placeholder="Username"
-      :error="usernameError"
-    />
-    <FormTextField
-      class="col-span-4 lg:col-span-2"
-      v-model="password"
-      label="Password"
-      name="password"
-      required
-      type="password"
-      placeholder="Password"
-      :error="passwordError"
-    />
-    <FormTextField
-      class="col-span-4 lg:col-span-4"
-      v-model="database"
-      label="Database"
-      name="databse"
-      required
-      placeholder="Database name"
-      :error="databaseError"
-    />
-    <div class="col-span-4 flex justify-end gap-[15px]">
+  <div>
+    <h1 class="text-xl font-bold mb-[20px]">New Connection</h1>
+    <div class="grid grid-cols-4 gap-x-[15px] gap-y-[10px]">
+      <FormTextField
+        class="col-span-4 lg:col-span-4"
+        v-model="name"
+        label="Name"
+        name="name"
+        required
+        placeholder="Connection Name"
+        :error="nameError"
+      />
+      <FormSelect
+        class="col-span-4 lg:col-span-4"
+        v-model="type"
+        label="Type"
+        name="type"
+        required
+        placeholder="Select Type"
+        option-key="id"
+        option-label="label"
+        :options="databases"
+        :error="typeError"
+      />
+      <FormTextField
+        class="col-span-4 lg:col-span-2"
+        v-model="host"
+        label="Host"
+        name="host"
+        required
+        placeholder="DB Host"
+        :error="hostError"
+      />
+      <FormTextField
+        class="col-span-4 lg:col-span-2"
+        v-model.number="port"
+        label="Port"
+        name="port"
+        required
+        placeholder="DB Port"
+        :error="portError"
+      />
+      <FormTextField
+        class="col-span-4 lg:col-span-2"
+        v-model="username"
+        label="Username"
+        name="username"
+        required
+        placeholder="Username"
+        :error="usernameError"
+      />
+      <FormTextField
+        class="col-span-4 lg:col-span-2"
+        v-model="password"
+        label="Password"
+        name="password"
+        required
+        type="password"
+        placeholder="Password"
+        :error="passwordError"
+      />
+      <FormTextField
+        class="col-span-4 lg:col-span-4"
+        v-model="database"
+        label="Database"
+        name="databse"
+        required
+        placeholder="Database name"
+        :error="databaseError"
+      />
+    </div>
+    <div class="flex justify-end gap-[15px] mt-[20px]">
       <BaseBorderButton
         type="button"
         @click="handleTest"
