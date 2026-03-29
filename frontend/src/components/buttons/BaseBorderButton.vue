@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { ClassValue, computed } from "vue";
 
-const props = defineProps<{
+const {
+  type = "button",
+  disabled = false,
+  variant = "primary",
+  btnClass = "",
+  loading = false,
+} = defineProps<{
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   variant?: "primary" | "danger";
-  class?: string;
+  btnClass?: ClassValue;
+  loading?: boolean;
 }>();
-
-const variant = computed(() => props.variant || "primary");
 
 const emit = defineEmits<{
   (e: "click", event: MouseEvent): void;
@@ -21,11 +26,11 @@ const emit = defineEmits<{
 }>();
 
 const buttonClasses = computed(() => {
-  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 dark:text-dark dark:hover:opacity-90`;
+  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 dark:text-dark dark:hover:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
 
-  if (variant.value === "primary") {
+  if (variant === "primary") {
     return `${base} text-text-light bg-white border border-primary hover:bg-primary-light dark:text-text-dark dark:bg-primary dark:hover:bg-primary-dark-hover`;
-  } else if (variant.value === "danger") {
+  } else if (variant === "danger") {
     return `${base} text-text-light bg-white border border-danger hover:bg-danger-light dark:text-text-dark dark:bg-danger dark:hover:bg-danger-dark-hover`;
   }
 
@@ -36,6 +41,7 @@ const buttonClasses = computed(() => {
 <template>
   <button
     v-bind="$attrs"
+    :disabled="disabled"
     @click="emit('click', $event)"
     @focus="emit('focus', $event)"
     @blur="emit('blur', $event)"
@@ -43,7 +49,13 @@ const buttonClasses = computed(() => {
     @mouseleave="emit('mouseleave', $event)"
     @keydown="emit('keydown', $event)"
     @keyup="emit('keyup', $event)"
-    :class="[buttonClasses, props.class]"
+    :class="[
+      buttonClasses,
+      btnClass,
+      {
+        'opacity-70': loading,
+      },
+    ]"
   >
     <slot />
   </button>
