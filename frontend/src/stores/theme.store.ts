@@ -8,7 +8,7 @@ export const useThemeStore = defineStore(
   () => {
     const theme = ref<Theme>("system");
 
-    function applyTheme() {
+    function applyTheme(): void {
       const html = document.documentElement;
 
       if (theme.value === "dark") {
@@ -20,7 +20,7 @@ export const useThemeStore = defineStore(
       SetTheme(theme.value === "dark");
     }
 
-    function toggleTheme() {
+    function toggleTheme(): void {
       if (theme.value === "dark") {
         theme.value = "light";
       } else if (theme.value === "light") {
@@ -37,7 +37,7 @@ export const useThemeStore = defineStore(
       applyTheme();
     }
 
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark: boolean = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
     if (prefersDark) {
       theme.value = "light";
@@ -47,7 +47,7 @@ export const useThemeStore = defineStore(
     toggleTheme();
 
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const prefersDark: boolean = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
       if (prefersDark) {
         theme.value = "light";

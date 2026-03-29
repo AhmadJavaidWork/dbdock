@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const { color = 'white' } = defineProps<{
-  color?: string
-}>()
+const { color = "white" } = defineProps<{
+  color?: string;
+}>();
 </script>
 >
 
@@ -9,7 +9,7 @@ const { color = 'white' } = defineProps<{
   <div
     :class="[
       'w-4 h-4 border-2 border-solid border-t-transparent rounded-full animate-spin',
-      `border-${color}`
+      `border-${color}`,
     ]"
     v-bind="$attrs"
   ></div>

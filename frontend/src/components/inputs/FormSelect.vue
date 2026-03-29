@@ -111,7 +111,7 @@ function selectOption(option: T): void {
               {
                 'group-focus:text-textfield-placeholder-error-light dark:group-focus:text-textfield-placeholder-error-light':
                   error,
-                'text-textfield-border-focused-border-light dark:text-textfield-border-focused-border-light':
+                'text-textfield-border-focused-border-light dark:text-textfield-border-focused-border-dark':
                   !error && (isDropdownOpen || model),
                 'text-textfield-placeholder-light dark:text-textfield-placeholder-dark':
                   !error && !isDropdownOpen && !model,

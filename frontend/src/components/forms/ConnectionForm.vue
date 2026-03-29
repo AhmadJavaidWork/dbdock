@@ -7,6 +7,7 @@ import { usePrompt } from "@/composables/usePrompt";
 import { connectionErrorToText } from "@/errors/connection.error";
 import { testConnection } from "@/services/connection.service";
 import { fetchDatabases } from "@/services/database.service";
+import { useLoaderStore } from "@/stores/loader";
 import { DatabaseDriver } from "@/types/database.types";
 import { connectionRules } from "@/validators/connection.rules";
 import { useVuelidate } from "@vuelidate/core";
@@ -44,23 +45,31 @@ const connecting = ref<boolean>(false);
 const testing = ref<boolean>(false);
 
 async function connect(): Promise<string | undefined> {
-  const valid = await v$.value.$validate();
-  if (!valid) return;
+  useLoaderStore().show();
   if (!type.value || !port.value) return;
-  return testConnection({
-    name: name.value,
-    type: type.value,
-    host: host.value,
-    port: port.value,
-    username: username.value,
-    password: password.value,
-    database: database.value,
-  });
+  try {
+    const res = await testConnection({
+      name: name.value,
+      type: type.value,
+      host: host.value,
+      port: port.value,
+      username: username.value,
+      password: password.value,
+      database: database.value,
+    });
+    return res;
+  } catch (error) {
+    throw error;
+  } finally {
+    useLoaderStore().hide();
+  }
 }
 
 async function handleTest(): Promise<void> {
-  testing.value = true;
+  const valid = await v$.value.$validate();
+  if (!valid) return;
   if (!type.value || !port.value) return;
+  testing.value = true;
   try {
     const res = await connect();
     if (!res) return;
@@ -82,6 +91,8 @@ async function handleTest(): Promise<void> {
 }
 
 async function createConnection(): Promise<void> {
+  const valid = await v$.value.$validate();
+  if (!valid) return;
   connecting.value = true;
   if (!type.value || !port.value) return;
   try {
