@@ -1,12 +1,14 @@
-import { Theme } from "@/types/theme.type";
+import { Theme, ThemeConfig } from "@/types/theme.type";
+import { applyThemeConfig } from "@/utils/theme.utils";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { SetTheme } from "~/wailsjs/go/main/App";
+import { GetThemeConfig, SetTheme } from "~/wailsjs/go/main/App";
 
 export const useThemeStore = defineStore(
   "theme",
   () => {
     const theme = ref<Theme>("system");
+    const themeConfig = ref<ThemeConfig>();
 
     function applyTheme(): void {
       const html = document.documentElement;
@@ -37,6 +39,12 @@ export const useThemeStore = defineStore(
       applyTheme();
     }
 
+    async function loadThemeConfig() {
+      themeConfig.value = await GetThemeConfig();
+      if (!themeConfig.value) return;
+      applyThemeConfig(themeConfig.value);
+    }
+
     const prefersDark: boolean = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
     if (prefersDark) {
@@ -57,7 +65,7 @@ export const useThemeStore = defineStore(
       toggleTheme();
     });
 
-    return { theme, applyTheme, toggleTheme };
+    return { theme, applyTheme, toggleTheme, loadThemeConfig };
   },
   {
     persist: {

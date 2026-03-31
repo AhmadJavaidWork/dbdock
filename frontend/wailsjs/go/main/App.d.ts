@@ -4,6 +4,8 @@ import {models} from '../models';
 
 export function GetSupportedDatabases():Promise<Array<models.DatabaseDriver>>;
 
+export function GetThemeConfig():Promise<models.ThemeConfig>;
+
 export function SetTheme(arg1:boolean):Promise<void>;
 
 export function TestConnection(arg1:models.DBConnection):Promise<string>;

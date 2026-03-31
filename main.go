@@ -1,7 +1,10 @@
 package main
 
 import (
+	"DBDock/services"
 	"embed"
+	"os"
+	"path/filepath"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -11,11 +14,20 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-func main() {
-	// Create an instance of the app structure
-	app := NewApp()
+func initConfig() *services.ThemeService {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return services.NewThemeService("")
+	}
+	appConfigDir := filepath.Join(configDir, "dbdock")
+	return services.NewThemeService(appConfigDir)
+}
 
-	// Create application with options
+func main() {
+	config := initConfig()
+
+	app := NewApp(config)
+
 	err := wails.Run(&options.App{
 		Title:  "DBDock",
 		Width:  1024,

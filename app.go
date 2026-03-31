@@ -13,13 +13,15 @@ type App struct {
 	ctx               context.Context
 	connectionService *services.ConnectionService
 	databaseService   *services.DatabaseService
+	themeService      *services.ThemeService
 }
 
 // NewApp creates a new App application struct
-func NewApp() *App {
+func NewApp(themeService *services.ThemeService) *App {
 	return &App{
 		connectionService: services.NewConnectionService(),
 		databaseService:   services.NewDatabaseService(),
+		themeService:      themeService,
 	}
 }
 
@@ -47,4 +49,8 @@ func (a *App) TestConnection(conn models.DBConnection) (string, error) {
 		return "", err
 	}
 	return "Connection successfull", nil
+}
+
+func (a *App) GetThemeConfig() models.ThemeConfig {
+	return a.themeService.LoadTheme()
 }

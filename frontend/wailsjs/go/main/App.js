@@ -6,6 +6,10 @@ export function GetSupportedDatabases() {
   return window['go']['main']['App']['GetSupportedDatabases']();
 }
 
+export function GetThemeConfig() {
+  return window['go']['main']['App']['GetThemeConfig']();
+}
+
 export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
 }
