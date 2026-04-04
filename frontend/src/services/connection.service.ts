@@ -1,5 +1,5 @@
 import { DBConnection } from "@/types/connection.type";
-import { TestConnection } from "~/wailsjs/go/main/App";
+import { CreateConnection, TestConnection } from "~/wailsjs/go/main/App";
 import { models } from "~/wailsjs/go/models";
 
 function toWailsConnection(conn: DBConnection): models.DBConnection {
@@ -8,4 +8,8 @@ function toWailsConnection(conn: DBConnection): models.DBConnection {
 
 export function testConnection(conn: DBConnection): Promise<string> {
   return TestConnection(toWailsConnection(conn));
+}
+
+export function createConnection(conn: DBConnection): Promise<string> {
+  return CreateConnection(toWailsConnection(conn));
 }

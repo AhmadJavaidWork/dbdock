@@ -1,0 +1,37 @@
+.Toastify__toast-theme--light {
+  .Toastify__progress-bar--success {
+    background: rgb(var(--color-text-success));
+  }
+
+  .Toastify__progress-bar--info {
+    background: rgb(var(--color-text-info));
+  }
+
+  .Toastify__progress-bar--warning {
+    background: rgb(var(--color-text-warning));
+  }
+
+  .Toastify__progress-bar--error {
+    background: rgb(var(--color-text-danger));
+  }
+}
+
+.dark {
+  .Toastify__toast-theme--light {
+    .Toastify__progress-bar--success {
+      background: rgb(var(--color-text-success-darker))
+    }
+
+    .Toastify__progress-bar--info {
+      background: rgb(var(--color-text-info-darker));
+    }
+
+    .Toastify__progress-bar--warning {
+      background: rgb(var(--color-text-warning-darker));
+    }
+
+    .Toastify__progress-bar--error {
+      background: rgb(var(--color-text-danger-darker));
+    }
+  }
+}

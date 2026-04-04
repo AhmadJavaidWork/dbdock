@@ -18,6 +18,6 @@ const routes: RouteRecordRaw[] = [
 ];
 
 export const router = createRouter({
-  history: createWebHashHistory(), // ✅ best for Wails
+  history: createWebHashHistory(),
   routes,
 });

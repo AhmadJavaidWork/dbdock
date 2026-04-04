@@ -4,8 +4,9 @@ import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
 import FormSelect from "@/components/inputs/FormSelect.vue";
 import FormTextField from "@/components/inputs/FormTextField.vue";
 import { usePrompt } from "@/composables/usePrompt";
+import { useToast } from "@/composables/useToast";
 import { connectionErrorToText } from "@/errors/connection.error";
-import { testConnection } from "@/services/connection.service";
+import { createConnection, testConnection } from "@/services/connection.service";
 import { fetchDatabases } from "@/services/database.service";
 import { useLoaderStore } from "@/stores/loader";
 import { DatabaseDriver } from "@/types/database.types";
@@ -41,8 +42,9 @@ const databaseError = computed(
   (): string => v$.value.database.$errors[0]?.$message.toString() ?? null
 );
 
-const connecting = ref<boolean>(false);
 const testing = ref<boolean>(false);
+const saving = ref<boolean>(false);
+const connecting = ref<boolean>(false);
 
 async function connect(): Promise<string | undefined> {
   useLoaderStore().show();
@@ -90,37 +92,42 @@ async function handleTest(): Promise<void> {
   testing.value = false;
 }
 
-async function createConnection(): Promise<void> {
+async function handleSave(): Promise<void> {
   const valid = await v$.value.$validate();
   if (!valid) return;
-  connecting.value = true;
+  saving.value = true;
   if (!type.value || !port.value) return;
   try {
-    const res = await connect();
-    if (!res) return;
-    prompt({
-      type: "success",
-      title: "Connection status",
-      message: "Connection Successful",
+    const res = await createConnection({
+      name: name.value,
+      type: type.value,
+      host: host.value,
+      port: port.value,
+      username: username.value,
+      password: password.value,
+      database: database.value,
     });
+    useToast(res, "success");
   } catch (error: unknown) {
-    const message = connectionErrorToText(error, type.value, username.value, database.value);
-    prompt({
-      type: "error",
-      title: "Connection failed",
-      message,
-    });
-    console.log("Connection failed: ", message);
+    useToast(error as string, "error");
+    console.log("error", error);
   }
-  connecting.value = false;
+  saving.value = false;
 }
 
-onMounted(async function (): Promise<void> {
-  databases.value = await fetchDatabases();
+async function handleConnect(): Promise<void> {}
 
-  if (databases.value.length > 0) {
-    type.value = databases.value[0];
-    port.value = databases.value[0].defaultPort;
+onMounted(async function (): Promise<void> {
+  try {
+    databases.value = await fetchDatabases();
+
+    if (databases.value.length > 0) {
+      type.value = databases.value[0];
+      port.value = databases.value[0].defaultPort;
+    }
+  } catch (error) {
+    useToast(error as string, "error");
+    console.log("error", error);
   }
 });
 
@@ -206,19 +213,28 @@ watch(type, function (newType) {
         :error="databaseError"
       />
     </div>
-    <div class="flex justify-end gap-[15px] mt-[20px]">
-      <BaseBorderButton
-        type="button"
-        @click="handleTest"
-        :loading="connecting"
-        :disabled="testing || connecting"
-      >
-        {{ testing ? "Testing Connection..." : "Test Connection" }}
-      </BaseBorderButton>
+    <div class="flex justify-between mt-[20px]">
+      <div class="flex justify-start gap-[15px]">
+        <BasePrimaryButton
+          :disabled="connecting || testing"
+          :loading="connecting"
+          @click="handleSave"
+        >
+          {{ connecting ? "Saving..." : "Save" }}
+        </BasePrimaryButton>
+        <BaseBorderButton
+          type="button"
+          @click="handleTest"
+          :loading="connecting"
+          :disabled="testing || connecting"
+        >
+          {{ testing ? "Testing..." : "Test" }}
+        </BaseBorderButton>
+      </div>
       <BasePrimaryButton
         :disabled="connecting || testing"
         :loading="connecting"
-        @click="createConnection"
+        @click="handleConnect"
       >
         {{ connecting ? "Connecting..." : "Connect" }}
       </BasePrimaryButton>

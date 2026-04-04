@@ -66,7 +66,7 @@ func (ts *ThemeService) defaultTheme() models.ThemeConfig {
 		"primary-dark-hover":                             "30 51 109",
 		"secondary":                                      "96 165 250",
 		"secondary-dark-hover":                           "90 152 229",
-		"anger":                                          "228 41 51",
+		"danger":                                         "228 41 51",
 		"danger-light":                                   "253 239 239",
 		"danger-hover":                                   "217 83 83",
 		"danger-darker":                                  "194 31 43",

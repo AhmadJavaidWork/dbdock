@@ -62,7 +62,7 @@ defineExpose<{
       ]"
       @focus="emit('focus', $event)"
     />
-    <p v-if="error" class="text-danger text-sm mt-[3px]">
+    <p v-if="error" class="text-text-danger text-sm mt-[3px]">
       {{ error }}
     </p>
   </div>

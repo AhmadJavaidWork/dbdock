@@ -1,6 +1,7 @@
 package main
 
 import (
+	"DBDock/db"
 	"DBDock/models"
 	"DBDock/services"
 	"context"
@@ -10,6 +11,7 @@ import (
 
 // App struct
 type App struct {
+	appConfigDir      string
 	ctx               context.Context
 	connectionService *services.ConnectionService
 	databaseService   *services.DatabaseService
@@ -17,11 +19,13 @@ type App struct {
 }
 
 // NewApp creates a new App application struct
-func NewApp(themeService *services.ThemeService) *App {
+func NewApp(appConfigDir string) *App {
+	db.Init(appConfigDir)
 	return &App{
+		appConfigDir:      appConfigDir,
 		connectionService: services.NewConnectionService(),
 		databaseService:   services.NewDatabaseService(),
-		themeService:      themeService,
+		themeService:      services.NewThemeService(appConfigDir),
 	}
 }
 
@@ -39,7 +43,7 @@ func (a *App) SetTheme(dark bool) {
 	}
 }
 
-func (a *App) GetSupportedDatabases() []models.DatabaseDriver {
+func (a *App) GetSupportedDatabases() ([]models.DatabaseDriver, error) {
 	return a.databaseService.ListSupported()
 }
 
@@ -53,4 +57,12 @@ func (a *App) TestConnection(conn models.DBConnection) (string, error) {
 
 func (a *App) GetThemeConfig() models.ThemeConfig {
 	return a.themeService.LoadTheme()
+}
+
+func (a *App) CreateConnection(conn models.DBConnection) (string, error) {
+	err := a.connectionService.Create(conn)
+	if err != nil {
+		return "", err
+	}
+	return "Connection saved successfully", nil
 }

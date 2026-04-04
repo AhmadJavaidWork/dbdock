@@ -1,7 +1,0 @@
-package models
-
-type DatabaseDriver struct {
-	ID          string `json:"id"`
-	Label       string `json:"label"`
-	DefaultPort int    `json:"defaultPort"`
-}

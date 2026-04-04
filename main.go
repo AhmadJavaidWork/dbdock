@@ -1,8 +1,8 @@
 package main
 
 import (
-	"DBDock/services"
 	"embed"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -14,21 +14,28 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-func initConfig() *services.ThemeService {
+func initConfig() (string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		return services.NewThemeService("")
+		return "", nil
 	}
-	appConfigDir := filepath.Join(configDir, "dbdock")
-	return services.NewThemeService(appConfigDir)
+
+	appPath := filepath.Join(configDir, "dbdock")
+
+	err = os.MkdirAll(appPath, 0755)
+	return appPath, err
+
 }
 
 func main() {
-	config := initConfig()
+	appConfigDir, err := initConfig()
+	if err != nil {
+		fmt.Println("error", err)
+	}
 
-	app := NewApp(config)
+	app := NewApp(appConfigDir)
 
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title:  "DBDock",
 		Width:  1024,
 		Height: 768,
