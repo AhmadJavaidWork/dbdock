@@ -13,6 +13,12 @@ const emit = defineEmits<{
   "add-new-connection": [];
 }>();
 
+const sidebarWidth = ref<number>(300);
+const isResizing = ref<boolean>(false);
+
+let frameId: number | null = null;
+let pendingWidth = 0;
+
 const search = ref<string>("");
 const filteredConnections = computed(() => {
   if (!search.value) return useConnectionStore().connections;
@@ -21,8 +27,52 @@ const filteredConnections = computed(() => {
   );
 });
 
-function selectConnection(conn: DBConnection) {
-  emit("select-connection", conn);
+function startResize(e: MouseEvent) {
+  e.preventDefault();
+  isResizing.value = true;
+
+  document.body.classList.add("resizing");
+
+  window.addEventListener("mousemove", resize);
+  window.addEventListener("mouseup", stopResize);
+}
+
+function resize(e: MouseEvent) {
+  if (!isResizing.value) return;
+
+  const newWidth = e.clientX;
+
+  pendingWidth = e.clientX;
+
+  if (frameId) return;
+
+  frameId = requestAnimationFrame(() => {
+    let newWidth = pendingWidth;
+
+    if (newWidth < 200) newWidth = 200;
+    if (newWidth > 600) newWidth = 600;
+
+    sidebarWidth.value = newWidth;
+
+    frameId = null;
+  });
+}
+
+function stopResize() {
+  isResizing.value = false;
+
+  document.body.classList.remove("resizing");
+
+  if (frameId) {
+    cancelAnimationFrame(frameId);
+    frameId = null;
+  }
+
+  window.removeEventListener("mousemove", resize);
+  window.removeEventListener("mouseup", stopResize);
+
+  document.body.style.userSelect = "";
+  document.body.style.cursor = "";
 }
 
 onMounted(async function () {
@@ -32,8 +82,16 @@ onMounted(async function () {
 
 <template>
   <aside
-    class="w-[300px] border-r border-textfield-border-light dark:border-textfield-border-dark flex flex-col"
+    :class="[
+      'relative border-r border-textfield-border-light dark:border-textfield-border-dark flex flex-col',
+    ]"
+    :style="{ width: sidebarWidth + 'px' }"
   >
+    <div
+      class="absolute top-0 right-0 w-[4px] h-full cursor-col-resize hover:bg-primary/30"
+      @mousedown="startResize"
+      @dblclick="sidebarWidth = 300"
+    ></div>
     <div
       class="flex gap-[15px] p-4 border-b border-textfield-border-light dark:border-textfield-border-dark"
     >
@@ -62,7 +120,7 @@ onMounted(async function () {
                 useConnectionStore().selectedConnection?.id === connection.id,
             },
           ]"
-          @click="selectConnection(connection)"
+          @click="emit('select-connection', connection)"
         >
           <h3 class="font-medium text-lg truncate" :title="connection.name">
             {{ connection.name }}

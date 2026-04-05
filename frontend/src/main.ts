@@ -1,4 +1,5 @@
 import App from "@/App.vue";
+import "@/assets/global.scss";
 import "@/assets/tailwind.css";
 import clickOutside from "@/directives/clickOutside.directive";
 import { router } from "@/router";
