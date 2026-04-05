@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends string | Record<string, any>">
+<script setup lang="ts" generic="T extends string | Record<string, any> | undefined">
 import IconChevronDown from "@/components/icons/IconChevronDown.vue";
 import { ref } from "vue";
 
@@ -142,8 +142,6 @@ function selectOption(option: T): void {
                   {
                     'text-select-options-text-selected-light bg-select-options-background-selected-light hover:bg-select-options-background-selected-hover-light dark:text-select-options-text-selected-dark dark:bg-select-options-background-selected-dark dark:hover:bg-select-options-background-selected-hover-dark':
                       getKey(model) === getKey(option),
-                  },
-                  {
                     'text-select-options-text-light bg-select-options-background-light hover:bg-select-options-background-hovered-light dark:text-select-options-text-dark dark:bg-select-options-background-dark dark:hover:bg-select-options-background-hovered-dark':
                       getKey(model) !== getKey(option),
                   },

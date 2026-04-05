@@ -1,5 +1,8 @@
 export type DatabaseDriver = {
-  id: string;
+  id: number;
+  name: string;
   label: string;
   defaultPort: number;
+  createdAt: string;
+  updatedAt: string;
 };

@@ -2,13 +2,11 @@
 import { ClassValue, computed } from "vue";
 
 const {
-  type = "button",
   disabled = false,
   variant = "primary",
   btnClass = "",
   loading = false,
 } = defineProps<{
-  type?: "button" | "submit" | "reset";
   disabled?: boolean;
   variant?: "primary" | "danger";
   btnClass?: ClassValue;

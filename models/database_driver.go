@@ -8,5 +8,5 @@ type DatabaseDriver struct {
 	Label       string    `json:"label"`
 	DefaultPort int       `json:"defaultPort"`
 	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"UpdatedAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }

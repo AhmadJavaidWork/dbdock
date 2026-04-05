@@ -47,8 +47,8 @@ func (a *App) GetSupportedDatabases() ([]models.DatabaseDriver, error) {
 	return a.databaseService.ListSupported()
 }
 
-func (a *App) TestConnection(conn models.DBConnection) (string, error) {
-	err := a.connectionService.Test(conn)
+func (a *App) TestConnection(conn models.CreateDBConnection, driver models.DatabaseDriver) (string, error) {
+	err := a.connectionService.Test(conn, driver)
 	if err != nil {
 		return "", err
 	}
@@ -59,10 +59,28 @@ func (a *App) GetThemeConfig() models.ThemeConfig {
 	return a.themeService.LoadTheme()
 }
 
-func (a *App) CreateConnection(conn models.DBConnection) (string, error) {
-	err := a.connectionService.Create(conn)
+func (a *App) CreateConnection(conn models.CreateDBConnection) (models.SaveDBConnectionResponse, error) {
+	connection, err := a.connectionService.Create(conn)
 	if err != nil {
-		return "", err
+		return models.SaveDBConnectionResponse{}, err
 	}
-	return "Connection saved successfully", nil
+	return models.SaveDBConnectionResponse{
+		Connection: connection,
+		Message:    "Connection added successfully",
+	}, nil
+}
+
+func (a *App) GetConnections() ([]models.DBConnection, error) {
+	return a.connectionService.GetAll()
+}
+
+func (a *App) UpdateConnection(conn models.DBConnection) (models.SaveDBConnectionResponse, error) {
+	connection, err := a.connectionService.Update(conn)
+	if err != nil {
+		return models.SaveDBConnectionResponse{}, err
+	}
+	return models.SaveDBConnectionResponse{
+		Connection: connection,
+		Message:    "Connection updated successfully",
+	}, nil
 }

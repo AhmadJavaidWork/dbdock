@@ -10,7 +10,7 @@ const {
   error = null,
   type = "text",
 } = defineProps<{
-  label: string;
+  label?: string;
   name: string;
   maxlength?: number;
   placeholder?: string;
@@ -36,7 +36,7 @@ defineExpose<{
 
 <template>
   <div v-bind="$attrs">
-    <label :for="name" class="font-medium">
+    <label v-if="label" :for="name" class="font-medium">
       {{ label }} <span v-if="required" class="text-danger">*</span>
     </label>
     <input

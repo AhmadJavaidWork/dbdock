@@ -128,9 +128,9 @@ func (ts *ThemeService) defaultTheme() models.ThemeConfig {
 		"select-options-background-dark":                 "42 43 56",
 		"select-options-background-hovered-light":        "241 243 246",
 		"select-options-background-hovered-dark":         "58 59 78",
-		"select-options-background-selected-light":       "244 245 248",
+		"select-options-background-selected-light":       "230 234 238",
 		"select-options-background-selected-dark":        "30 58 138",
-		"select-options-background-selected-hover-light": "245 247 249",
+		"select-options-background-selected-hover-light": "221 227 232",
 		"select-options-background-selected-hover-dark":  "30 51 109",
 	}
 }

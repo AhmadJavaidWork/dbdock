@@ -1,6 +1,6 @@
-import { DatabaseDriver } from "@/types/database.types";
+import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { GetSupportedDatabases } from "~/wailsjs/go/main/App";
 
-export function fetchDatabases(): Promise<DatabaseDriver[]> {
+export function fetchDatabaseDrivers(): Promise<DatabaseDriver[]> {
   return GetSupportedDatabases();
 }

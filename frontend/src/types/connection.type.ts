@@ -1,11 +1,28 @@
-import { DatabaseDriver } from "@/types/database.types";
+import { DatabaseDriver } from "@/types/databaseDriver.types";
 
-export type DBConnection = {
+export type DBConnectionBase = {
   name: string;
-  type: DatabaseDriver;
+  databaseDriverId: number | null;
   host: string;
-  port: number;
+  port: number | null;
   username: string;
   password: string;
-  database: string;
+  databaseName: string;
+};
+
+export type CreateDBConnection = DBConnectionBase;
+
+export type DBConnectionEntity = DBConnectionBase & {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DBConnection = DBConnectionEntity & {
+  databaseDriver: DatabaseDriver;
+};
+
+export type SaveDBConnectionResponse = {
+  connection: DBConnection;
+  message: string;
 };

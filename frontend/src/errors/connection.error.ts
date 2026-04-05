@@ -1,11 +1,11 @@
-import { DatabaseDriver } from "@/types/database.types";
+import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { getErrorMessage } from "@/utils/errorMessagehelper";
 
 export function connectionErrorToText(
   error: unknown,
   type: DatabaseDriver,
   username: string,
-  database: string
+  databaseName: string
 ) {
   const message = getErrorMessage(error);
   switch (true) {
@@ -18,8 +18,8 @@ export function connectionErrorToText(
     case message.includes("password authentication failed"):
       return `Password authentication failed for user ${username}. Please check your password.`;
 
-    case message.includes(`database "${database}" does not exist`):
-      return `Database "${database}" does not exist`;
+    case message.includes(`database "${databaseName}" does not exist`):
+      return `Database "${databaseName}" does not exist`;
 
     default:
       return message;

@@ -6,6 +6,10 @@ export function CreateConnection(arg1) {
   return window['go']['main']['App']['CreateConnection'](arg1);
 }
 
+export function GetConnections() {
+  return window['go']['main']['App']['GetConnections']();
+}
+
 export function GetSupportedDatabases() {
   return window['go']['main']['App']['GetSupportedDatabases']();
 }
@@ -18,6 +22,10 @@ export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
 }
 
-export function TestConnection(arg1) {
-  return window['go']['main']['App']['TestConnection'](arg1);
+export function TestConnection(arg1, arg2) {
+  return window['go']['main']['App']['TestConnection'](arg1, arg2);
+}
+
+export function UpdateConnection(arg1) {
+  return window['go']['main']['App']['UpdateConnection'](arg1);
 }

@@ -24,15 +24,15 @@ const emit = defineEmits<{
 }>();
 
 const buttonClasses = computed(() => {
-  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 text-white dark:text-gray-100 disabled:cursor-not-allowed disabled:pointer-events-none`;
+  const base = `py-auto px-[7px] font-medium rounded transition-colors duration-200 dark:text-dark dark:hover:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
 
   if (variant === "primary") {
-    return `${base} bg-primary hover:bg-primary-hover dark:bg-primary-dark dark:hover:bg-primary-dark-hover`;
+    return `${base} text-text-light bg-white border border-primary hover:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover`;
   } else if (variant === "danger") {
-    return `${base} bg-danger hover:bg-danger-hover dark:bg-danger-dark dark:hover:bg-danger-darker`;
+    return `${base} text-text-light bg-white border border-danger hover:bg-danger-light dark:text-text-dark dark:bg-danger dark:hover:bg-danger-dark-hover`;
   }
 
-  return `${base} bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600`;
+  return base;
 });
 </script>
 
@@ -47,7 +47,13 @@ const buttonClasses = computed(() => {
     @mouseleave="emit('mouseleave', $event)"
     @keydown="emit('keydown', $event)"
     @keyup="emit('keyup', $event)"
-    :class="[buttonClasses, btnClass, { 'opacity-70': loading }]"
+    :class="[
+      buttonClasses,
+      btnClass,
+      {
+        'opacity-70': loading,
+      },
+    ]"
   >
     <slot />
   </button>

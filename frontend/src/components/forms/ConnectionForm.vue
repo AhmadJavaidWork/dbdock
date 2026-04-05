@@ -3,33 +3,39 @@ import BaseBorderButton from "@/components/buttons/BaseBorderButton.vue";
 import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
 import FormSelect from "@/components/inputs/FormSelect.vue";
 import FormTextField from "@/components/inputs/FormTextField.vue";
-import { usePrompt } from "@/composables/usePrompt";
-import { useToast } from "@/composables/useToast";
-import { connectionErrorToText } from "@/errors/connection.error";
-import { createConnection, testConnection } from "@/services/connection.service";
-import { fetchDatabases } from "@/services/database.service";
-import { useLoaderStore } from "@/stores/loader";
-import { DatabaseDriver } from "@/types/database.types";
+import { CreateDBConnection } from "@/types/connection.type";
+import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { connectionRules } from "@/validators/connection.rules";
 import { useVuelidate } from "@vuelidate/core";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
-const { prompt } = usePrompt();
+const emit = defineEmits<{
+  save: [];
+  test: [];
+  connect: [];
+}>();
 
-const databases = ref<DatabaseDriver[]>([]);
+const {
+  databaseDrivers = [],
+  testing = false,
+  saving = false,
+  connecting = false,
+} = defineProps<{
+  databaseDrivers: DatabaseDriver[];
+  testing: boolean;
+  saving: boolean;
+  connecting: boolean;
+}>();
 
-const name = ref<string>("");
-const type = ref<DatabaseDriver | null>(null);
-const host = ref<string>("");
-const port = ref<number>();
-const username = ref<string>("");
-const password = ref<string>("");
-const database = ref<string>("");
+const form = defineModel<CreateDBConnection>("connection", { required: true });
+const databaseDriver = ref<DatabaseDriver | null>(null);
 
-const v$ = useVuelidate(connectionRules, { name, type, host, port, username, password, database });
+const v$ = useVuelidate(connectionRules, form);
 
 const nameError = computed((): string => v$.value.name.$errors[0]?.$message.toString() ?? null);
-const typeError = computed((): string => v$.value.type.$errors[0]?.$message.toString() ?? null);
+const typeError = computed(
+  (): string => v$.value.databaseDriverId.$errors[0]?.$message.toString() ?? null
+);
 const hostError = computed((): string => v$.value.host.$errors[0]?.$message.toString() ?? null);
 const portError = computed((): string => v$.value.port.$errors[0]?.$message.toString() ?? null);
 const usernameError = computed(
@@ -39,106 +45,23 @@ const passwordError = computed(
   (): string => v$.value.password.$errors[0]?.$message.toString() ?? null
 );
 const databaseError = computed(
-  (): string => v$.value.database.$errors[0]?.$message.toString() ?? null
+  (): string => v$.value.databaseName.$errors[0]?.$message.toString() ?? null
 );
 
-const testing = ref<boolean>(false);
-const saving = ref<boolean>(false);
-const connecting = ref<boolean>(false);
-
-async function connect(): Promise<string | undefined> {
-  useLoaderStore().show();
-  if (!type.value || !port.value) return;
-  try {
-    const res = await testConnection({
-      name: name.value,
-      type: type.value,
-      host: host.value,
-      port: port.value,
-      username: username.value,
-      password: password.value,
-      database: database.value,
-    });
-    return res;
-  } catch (error) {
-    throw error;
-  } finally {
-    useLoaderStore().hide();
-  }
-}
-
-async function handleTest(): Promise<void> {
-  const valid = await v$.value.$validate();
-  if (!valid) return;
-  if (!type.value || !port.value) return;
-  testing.value = true;
-  try {
-    const res = await connect();
-    if (!res) return;
-    prompt({
-      type: "success",
-      title: "Connection status",
-      message: "Connection Successful",
-    });
-  } catch (error: unknown) {
-    const message = connectionErrorToText(error, type.value, username.value, database.value);
-    prompt({
-      type: "error",
-      title: "Connection failed",
-      message,
-    });
-    console.log("Connection failed: ", message);
-  }
-  testing.value = false;
-}
-
-async function handleSave(): Promise<void> {
-  const valid = await v$.value.$validate();
-  if (!valid) return;
-  saving.value = true;
-  if (!type.value || !port.value) return;
-  try {
-    const res = await createConnection({
-      name: name.value,
-      type: type.value,
-      host: host.value,
-      port: port.value,
-      username: username.value,
-      password: password.value,
-      database: database.value,
-    });
-    useToast(res, "success");
-  } catch (error: unknown) {
-    useToast(error as string, "error");
-    console.log("error", error);
-  }
-  saving.value = false;
-}
-
-async function handleConnect(): Promise<void> {}
-
-onMounted(async function (): Promise<void> {
-  try {
-    databases.value = await fetchDatabases();
-
-    if (databases.value.length > 0) {
-      type.value = databases.value[0];
-      port.value = databases.value[0].defaultPort;
-    }
-  } catch (error) {
-    useToast(error as string, "error");
-    console.log("error", error);
-  }
-});
-
-watch(type, function (newType) {
-  if (newType) {
-    const db = databases.value.find((d) => d.id === newType.id);
-    if (db) {
-      port.value = db.defaultPort;
+watch<number | null>(
+  () => form.value.databaseDriverId,
+  (ddId: number | null) => {
+    if (ddId) {
+      const dd = databaseDrivers.find((dd) => dd.id === ddId);
+      if (dd) {
+        databaseDriver.value = dd;
+        form.value.port = dd.defaultPort;
+      }
     }
   }
-});
+);
+
+defineExpose({ v$, databaseDriver });
 </script>
 
 <template>
@@ -147,7 +70,7 @@ watch(type, function (newType) {
     <div class="grid grid-cols-4 gap-x-[15px] gap-y-[10px]">
       <FormTextField
         class="col-span-4 lg:col-span-4"
-        v-model="name"
+        v-model="form.name"
         label="Name"
         name="name"
         required
@@ -156,19 +79,19 @@ watch(type, function (newType) {
       />
       <FormSelect
         class="col-span-4 lg:col-span-4"
-        v-model="type"
+        v-model="databaseDriver"
         label="Type"
         name="type"
         required
         placeholder="Select Type"
         option-key="id"
         option-label="label"
-        :options="databases"
+        :options="databaseDrivers"
         :error="typeError"
       />
       <FormTextField
         class="col-span-4 lg:col-span-2"
-        v-model="host"
+        v-model="form.host"
         label="Host"
         name="host"
         required
@@ -177,7 +100,7 @@ watch(type, function (newType) {
       />
       <FormTextField
         class="col-span-4 lg:col-span-2"
-        v-model.number="port"
+        v-model.number="form.port"
         label="Port"
         name="port"
         required
@@ -186,7 +109,7 @@ watch(type, function (newType) {
       />
       <FormTextField
         class="col-span-4 lg:col-span-2"
-        v-model="username"
+        v-model="form.username"
         label="Username"
         name="username"
         required
@@ -195,7 +118,7 @@ watch(type, function (newType) {
       />
       <FormTextField
         class="col-span-4 lg:col-span-2"
-        v-model="password"
+        v-model="form.password"
         label="Password"
         name="password"
         required
@@ -205,9 +128,9 @@ watch(type, function (newType) {
       />
       <FormTextField
         class="col-span-4 lg:col-span-4"
-        v-model="database"
-        label="Database"
-        name="databse"
+        v-model="form.databaseName"
+        label="Database Name"
+        name="databaseName"
         required
         placeholder="Database name"
         :error="databaseError"
@@ -216,25 +139,27 @@ watch(type, function (newType) {
     <div class="flex justify-between mt-[20px]">
       <div class="flex justify-start gap-[15px]">
         <BasePrimaryButton
-          :disabled="connecting || testing"
-          :loading="connecting"
-          @click="handleSave"
+          type="button"
+          :disabled="saving || testing || connecting"
+          :loading="saving"
+          @click="emit('save')"
         >
           {{ connecting ? "Saving..." : "Save" }}
         </BasePrimaryButton>
         <BaseBorderButton
           type="button"
-          @click="handleTest"
-          :loading="connecting"
-          :disabled="testing || connecting"
+          :disabled="saving || testing || connecting"
+          :loading="testing"
+          @click="emit('test')"
         >
           {{ testing ? "Testing..." : "Test" }}
         </BaseBorderButton>
       </div>
       <BasePrimaryButton
-        :disabled="connecting || testing"
+        type="button"
+        :disabled="saving || testing || connecting"
         :loading="connecting"
-        @click="handleConnect"
+        @click="emit('connect')"
       >
         {{ connecting ? "Connecting..." : "Connect" }}
       </BasePrimaryButton>

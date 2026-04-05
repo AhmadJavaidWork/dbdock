@@ -49,7 +49,7 @@ func createTables() {
 			port INTEGER NOT NULL,
 			username TEXT NOT NULL,
 			password TEXT NOT NULL,
-			database TEXT NOT NULL,
+			database_name TEXT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			deleted_at TIMESTAMP,

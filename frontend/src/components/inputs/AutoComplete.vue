@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T extends string | Record<string, any>">
-import BaseTextField from "@/components/driverProfile/BaseTextField.vue";
 import IconSpinner from "@/components/icons/IconSpinner.vue";
+import FormTextField from "@/components/inputs/FormTextField.vue";
 import debounce from "lodash.debounce";
 import { ComponentPublicInstance, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
@@ -17,7 +17,7 @@ const props = defineProps<{
   ) => Promise<{ rows: T[]; count: number }>;
   labelKey?: T extends string ? never : keyof T;
   placeholder?: string;
-  label: string;
+  label?: string;
   required?: boolean;
   error?: string | undefined;
   name: string;
@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="relative w-full" ref="containerRef">
-    <BaseTextField
+    <FormTextField
       ref="textFieldRef"
       v-model="search"
       :name="`${name}-autocomplete-search`"
