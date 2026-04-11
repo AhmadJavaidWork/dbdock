@@ -6,6 +6,7 @@ import ConnectionForm from "@/components/forms/ConnectionForm.vue";
 import IconClose from "@/components/icons/IconClose.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import ConfigModal from "@/components/modals/ConfigModal.vue";
+import { useContextMenu } from "@/composables/useContextMenu";
 import { usePrompt } from "@/composables/usePrompt";
 import { useToast } from "@/composables/useToast";
 import { connectionErrorToText } from "@/errors/connection.error";
@@ -19,9 +20,9 @@ import { storeToRefs } from "pinia";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 
 const { prompt } = usePrompt();
+const { contextMenu } = useContextMenu();
 
 const { selectedConnection } = storeToRefs(useConnectionStore());
-let tabIndexCounter = 1;
 
 const databaseDrivers = ref<DatabaseDriver[]>([]);
 const connection = ref<CreateDBConnection>({
@@ -45,14 +46,14 @@ const search = ref<string>("");
 const showConnectionForm = ref<boolean>(false);
 const showConfigModal = ref<boolean>(false);
 
-const filteredConnections = computed(() => {
+const filteredConnections = computed((): DBConnection[] => {
   if (!search.value) return useConnectionStore().connections;
   return useConnectionStore().connections.filter((c) =>
     c.name.toLowerCase().includes(search.value)
   );
 });
 
-async function setConnection(conn: CreateDBConnection) {
+async function setConnection(conn: CreateDBConnection): Promise<void> {
   connection.value = {
     name: conn.name,
     databaseDriverId: conn.databaseDriverId,
@@ -74,7 +75,25 @@ async function setConnection(conn: CreateDBConnection) {
   }
 }
 
-async function selectConnection(conn: DBConnection) {
+async function openContextMenu(e: MouseEvent, conn: DBConnection): Promise<void> {
+  const options: string[] = ["Edit"];
+  const res = await contextMenu({
+    position: {
+      x: e.clientX,
+      y: e.clientY,
+    },
+    options,
+  });
+  switch (res) {
+    case "Edit":
+      selectConnection(conn);
+      break;
+    default:
+      break;
+  }
+}
+
+async function selectConnection(conn: DBConnection): Promise<void> {
   connection.value = {
     name: conn.name,
     databaseDriverId: conn.databaseDriverId,
@@ -93,7 +112,7 @@ async function selectConnection(conn: DBConnection) {
   }
 }
 
-async function addNewConnection(action: "form" | "import") {
+async function addNewConnection(action: "form" | "import"): Promise<void> {
   if (
     action === "form" &&
     formRef.value &&
@@ -112,7 +131,7 @@ async function addNewConnection(action: "form" | "import") {
   }
 }
 
-async function dontAddNewConnection(action: "form" | "import") {
+async function dontAddNewConnection(action: "form" | "import"): Promise<void> {
   if (action === "form" && newConnectionBtnRef.value && newConnectionBtnRef.value.btnRef) {
     hideConnectionForm();
     await nextTick();
@@ -124,7 +143,7 @@ async function dontAddNewConnection(action: "form" | "import") {
   }
 }
 
-function hideConnectionForm() {
+function hideConnectionForm(): void {
   if (formRef.value) {
     formRef.value.v$.$reset();
   }
@@ -248,7 +267,7 @@ async function updateConnection(): Promise<void> {
   }
 }
 
-function selectDefaultDatabaseDriver() {
+function selectDefaultDatabaseDriver(): void {
   if (databaseDrivers.value.length > 0) {
     connection.value.databaseDriverId = databaseDrivers.value[0].id;
     connection.value.port = databaseDrivers.value[0].defaultPort;
@@ -268,14 +287,10 @@ async function handleSave(): Promise<void> {
 
 async function handleConnect(): Promise<void> {}
 
-function handleKeydown(e: KeyboardEvent) {
+function handleKeydown(e: KeyboardEvent): void {
   if (e.key === "Escape" && showConnectionForm.value) {
     dontAddNewConnection("form");
   }
-}
-
-function assignTabindex(): number {
-  return tabIndexCounter++;
 }
 
 window.addEventListener("keydown", handleKeydown);
@@ -291,7 +306,7 @@ onMounted(async function (): Promise<void> {
   }
 });
 
-onUnmounted(function () {
+onUnmounted(function (): void {
   window.removeEventListener("keydown", handleKeydown);
 });
 </script>
@@ -353,9 +368,9 @@ onUnmounted(function () {
         </div>
         <div
           v-if="useConnectionStore().connections.length > 0"
-          class="self-start min-w-[650px] flex flex-col gap-[20px]"
+          class="self-start min-w-[650px] max-w-[650px] flex flex-col gap-[20px]"
         >
-          <div class="flex justify-between items-center">
+          <div class="px-5 flex justify-between items-center">
             <p class="font-normal text-xl">Recent Connections</p>
             <BaseTextField
               tabindex="3"
@@ -373,7 +388,7 @@ onUnmounted(function () {
               :tabindex="4 + index"
               :key="`connection-list-name-${index}`"
               :class="[
-                'py-2 flex-wrap cursor-pointer',
+                'py-2 px-5 flex-wrap cursor-pointer last:border-b-0',
                 {
                   'text-select-options-text-light focus-visible:bg-select-options-background-hovered-light hover:bg-select-options-background-hovered-light border-b border-textfield-border-light dark:text-select-options-text-dark dark:focus-visible:bg-select-options-background-hovered-dark dark:hover:bg-select-options-background-hovered-dark dark:border-textfield-border-dark':
                     useConnectionStore().selectedConnection?.id !== connection.id,
@@ -384,6 +399,7 @@ onUnmounted(function () {
               @click="selectConnection(connection)"
               @keydown.enter="selectConnection(connection)"
               @keydown.space.prevent="selectConnection(connection)"
+              @contextmenu.prevent="openContextMenu($event, connection)"
             >
               <h3 class="font-medium text-lg truncate" :title="connection.name">
                 {{ connection.name }}
@@ -437,7 +453,6 @@ onUnmounted(function () {
             <ConnectionForm
               ref="formRef"
               v-model:connection="connection"
-              :assign-tabindex="assignTabindex"
               :database-drivers="databaseDrivers"
               :saving="saving"
               :testing="testing"

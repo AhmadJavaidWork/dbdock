@@ -1,20 +1,27 @@
 <script setup lang="ts">
 import AppLoader from "@/components/common/AppLoader.vue";
+import BaseContextMenu from "@/components/common/BaseContextMenu.vue";
 import BasePrompt from "@/components/modals/BasePrompt.vue";
 import { onUnmounted } from "vue";
 import { Reload } from "~/wailsjs/go/main/App";
 
-function handleKeydown(e: KeyboardEvent) {
+function handleKeydown(e: KeyboardEvent): void {
   if (e.ctrlKey && e.key.toLowerCase() === "r") {
     e.stopImmediatePropagation();
     Reload();
   }
 }
 
-window.addEventListener("keydown", handleKeydown, true);
+function handleContextMenu(e: MouseEvent): void {
+  e.preventDefault();
+}
 
-onUnmounted(function () {
-  window.addEventListener("keydown", handleKeydown, true);
+window.addEventListener("keydown", handleKeydown, true);
+window.addEventListener("contextmenu", handleContextMenu);
+
+onUnmounted(function (): void {
+  window.removeEventListener("keydown", handleKeydown, true);
+  window.removeEventListener("contextmenu", handleContextMenu);
 });
 </script>
 
@@ -24,4 +31,5 @@ onUnmounted(function () {
     <RouterView />
   </main>
   <BasePrompt />
+  <BaseContextMenu />
 </template>
