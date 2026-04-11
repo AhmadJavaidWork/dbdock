@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T">
+<script setup lang="ts">
 import { Ref, ref } from "vue";
 
 const {
@@ -9,6 +9,7 @@ const {
   required = false,
   error = null,
   type = "text",
+  tabindex = 1,
 } = defineProps<{
   name: string;
   label?: string;
@@ -17,13 +18,14 @@ const {
   required?: boolean;
   error?: string | null;
   type?: string;
+  tabindex?: string | number;
 }>();
 
 const emit = defineEmits<{
   focus: [event: FocusEvent];
 }>();
 
-const model = defineModel<T | null>({ required: true });
+const model = defineModel<string | number | null>({ required: true });
 
 const inputRef = ref<HTMLInputElement | null>(null);
 
@@ -43,6 +45,7 @@ defineExpose<{
       ref="inputRef"
       :id="name"
       v-model="model"
+      :tabindex="tabindex"
       :type="type"
       :placeholder="placeholder"
       :maxlength="maxlength"

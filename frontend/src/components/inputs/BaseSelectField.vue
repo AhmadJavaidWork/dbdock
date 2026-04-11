@@ -11,6 +11,7 @@ const {
   error = null,
   optionKey = "",
   optionLabel = "",
+  tabindex = 1,
 } = defineProps<{
   label: string;
   name: string;
@@ -20,6 +21,7 @@ const {
   placeholder?: string;
   required?: boolean;
   error?: string | null;
+  tabindex?: string | number;
 }>();
 
 const emit = defineEmits<{
@@ -27,6 +29,7 @@ const emit = defineEmits<{
 }>();
 
 const isDropdownOpen = ref<boolean>(false);
+const highlightedIndex = ref<number>(-1);
 
 const model = defineModel<T | null>({ required: true });
 
@@ -62,6 +65,55 @@ function selectOption(option: T): void {
   model.value = option;
   isDropdownOpen.value = false;
 }
+
+function openDropdown() {
+  isDropdownOpen.value = true;
+  highlightedIndex.value = 0;
+  if (model.value) {
+    for (let i = 0; i < options.length; i++) {
+      if (getKey(model.value) === getKey(options[i])) {
+        highlightedIndex.value = i;
+        break;
+      }
+    }
+  }
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (
+    !isDropdownOpen.value &&
+    (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter")
+  ) {
+    openDropdown();
+    return;
+  }
+
+  switch (e.key) {
+    case "ArrowDown":
+      e.preventDefault();
+      highlightedIndex.value = (highlightedIndex.value + 1) % options.length;
+      break;
+
+    case "ArrowUp":
+      e.preventDefault();
+      highlightedIndex.value = (highlightedIndex.value - 1 + options.length) % options.length;
+      break;
+
+    case "Enter":
+      e.preventDefault();
+      if (isDropdownOpen.value === false) {
+        isDropdownOpen.value = true;
+      } else if (options[highlightedIndex.value]) {
+        selectOption(options[highlightedIndex.value]);
+      }
+      break;
+
+    case "Escape":
+      e.stopImmediatePropagation();
+      isDropdownOpen.value = false;
+      break;
+  }
+}
 </script>
 
 <template>
@@ -76,7 +128,7 @@ function selectOption(option: T): void {
       <div>
         <button
           type="button"
-          @click="isDropdownOpen = !isDropdownOpen"
+          :tabindex="tabindex"
           :class="[
             'inline-flex justify-between items-center w-full rounded-md border px-[10px] py-2 group max-h-[35px]',
             {
@@ -92,6 +144,8 @@ function selectOption(option: T): void {
           ]"
           id="menu-button"
           :aria-expanded="isDropdownOpen"
+          @click="openDropdown"
+          @keydown="onKeydown"
         >
           <span v-if="model">{{ getLabel(model) }}</span>
           <span
@@ -140,12 +194,21 @@ function selectOption(option: T): void {
                 :class="[
                   'flex justify-start items-center flex-wrap px-2 py-2 cursor-pointer',
                   {
-                    'text-select-options-text-selected-light bg-select-options-background-selected-light hover:bg-select-options-background-selected-hover-light dark:text-select-options-text-selected-dark dark:bg-select-options-background-selected-dark dark:hover:bg-select-options-background-selected-hover-dark':
+                    'text-select-options-text-selected-light hover:bg-select-options-background-selected-hover-light dark:text-select-options-text-selected-dark dark:hover:bg-select-options-background-selected-hover-dark':
                       getKey(model) === getKey(option),
-                    'text-select-options-text-light bg-select-options-background-light hover:bg-select-options-background-hovered-light dark:text-select-options-text-dark dark:bg-select-options-background-dark dark:hover:bg-select-options-background-hovered-dark':
+                    'text-select-options-text-light hover:bg-select-options-background-hovered-light dark:text-select-options-text-dark dark:hover:bg-select-options-background-hovered-dark':
                       getKey(model) !== getKey(option),
+                    'bg-select-options-background-light dark:bg-select-options-background-dark':
+                      highlightedIndex !== index && getKey(model) !== getKey(option),
+                    'bg-select-options-background-selected-light dark:bg-select-options-background-selected-dark':
+                      highlightedIndex !== index && getKey(model) === getKey(option),
+                    'bg-select-options-background-selected-hover-light dark:bg-select-options-background-selected-hover-dark':
+                      highlightedIndex === index && getKey(model) === getKey(option),
+                    'bg-select-options-background-hovered-light dark:bg-select-options-background-hovered-dark':
+                      highlightedIndex === index && getKey(model) !== getKey(option),
                   },
                 ]"
+                @mouseenter="highlightedIndex = index"
               >
                 <span>{{ getLabel(option) }}</span>
               </div>

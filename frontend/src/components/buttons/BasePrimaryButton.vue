@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ClassValue, computed } from "vue";
+import { ClassValue, computed, Ref, ref } from "vue";
 
 const {
   disabled = false,
@@ -12,6 +12,8 @@ const {
   btnClass?: ClassValue;
   loading?: boolean;
 }>();
+
+const btnRef = ref<HTMLButtonElement | null>(null);
 
 const emit = defineEmits<{
   (e: "click", event: MouseEvent): void;
@@ -27,17 +29,20 @@ const buttonClasses = computed(() => {
   const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 text-white dark:text-gray-100 disabled:cursor-not-allowed disabled:pointer-events-none`;
 
   if (variant === "primary") {
-    return `${base} bg-primary hover:bg-primary-hover dark:bg-primary-dark dark:hover:bg-primary-dark-hover`;
+    return `${base} bg-primary hover:bg-primary-hover focus-visible:bg-primary-hover dark:bg-primary-dark dark:hover:bg-primary-dark-hover dark:focus-visible:bg-primary-dark-hover`;
   } else if (variant === "danger") {
-    return `${base} bg-danger hover:bg-danger-hover dark:bg-danger-dark dark:hover:bg-danger-darker`;
+    return `${base} bg-danger hover:bg-danger-hover focus-visible:bg-danger-hover dark:bg-danger-dark dark:hover:bg-danger-darker dark:focus-visible:bg-danger-darker`;
   }
 
   return `${base} bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600`;
 });
+
+defineExpose<{ btnRef: Ref<HTMLButtonElement | null> }>({ btnRef });
 </script>
 
 <template>
   <button
+    ref="btnRef"
     v-bind="$attrs"
     :disabled="disabled"
     @click="emit('click', $event)"

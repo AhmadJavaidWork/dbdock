@@ -16,11 +16,12 @@ import { useLoaderStore } from "@/stores/loader";
 import { CreateDBConnection, DBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { storeToRefs } from "pinia";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 
 const { prompt } = usePrompt();
 
 const { selectedConnection } = storeToRefs(useConnectionStore());
+let tabIndexCounter = 1;
 
 const databaseDrivers = ref<DatabaseDriver[]>([]);
 const connection = ref<CreateDBConnection>({
@@ -33,6 +34,9 @@ const connection = ref<CreateDBConnection>({
   databaseName: "",
 });
 const formRef = ref<InstanceType<typeof ConnectionForm> | null>(null);
+const configRef = ref<InstanceType<typeof ConfigModal> | null>(null);
+const newConnectionBtnRef = ref<InstanceType<typeof BasePrimaryButton> | null>(null);
+const importConfigBtnRef = ref<InstanceType<typeof BaseBorderButton> | null>(null);
 
 const testing = ref<boolean>(false);
 const saving = ref<boolean>(false);
@@ -48,7 +52,7 @@ const filteredConnections = computed(() => {
   );
 });
 
-function setConnection(conn: CreateDBConnection) {
+async function setConnection(conn: CreateDBConnection) {
   connection.value = {
     name: conn.name,
     databaseDriverId: conn.databaseDriverId,
@@ -64,9 +68,13 @@ function setConnection(conn: CreateDBConnection) {
   }
 
   showConnectionForm.value = true;
+  if (formRef.value) {
+    await nextTick();
+    formRef.value.nameTextFieldRef?.inputRef?.focus();
+  }
 }
 
-function selectConnection(conn: DBConnection) {
+async function selectConnection(conn: DBConnection) {
   connection.value = {
     name: conn.name,
     databaseDriverId: conn.databaseDriverId,
@@ -78,6 +86,42 @@ function selectConnection(conn: DBConnection) {
   };
   selectedConnection.value = conn;
   showConnectionForm.value = true;
+
+  if (formRef.value && formRef.value.nameTextFieldRef && formRef.value.nameTextFieldRef.inputRef) {
+    await nextTick();
+    formRef.value.nameTextFieldRef.inputRef.focus();
+  }
+}
+
+async function addNewConnection(action: "form" | "import") {
+  if (
+    action === "form" &&
+    formRef.value &&
+    formRef.value.nameTextFieldRef &&
+    formRef.value.nameTextFieldRef.inputRef
+  ) {
+    showConnectionForm.value = true;
+    await nextTick();
+    formRef.value.nameTextFieldRef.inputRef.focus();
+  } else if (action === "import" && configRef.value) {
+    showConfigModal.value = true;
+    await nextTick();
+    if (configRef.value.configTextAreaRef && configRef.value.configTextAreaRef.inputRef) {
+      configRef.value.configTextAreaRef.inputRef.focus();
+    }
+  }
+}
+
+async function dontAddNewConnection(action: "form" | "import") {
+  if (action === "form" && newConnectionBtnRef.value && newConnectionBtnRef.value.btnRef) {
+    hideConnectionForm();
+    await nextTick();
+    newConnectionBtnRef.value.btnRef.focus();
+  } else if (action === "import" && importConfigBtnRef.value && importConfigBtnRef.value.btnRef) {
+    showConfigModal.value = false;
+    await nextTick();
+    importConfigBtnRef.value.btnRef.focus();
+  }
 }
 
 function hideConnectionForm() {
@@ -226,8 +270,12 @@ async function handleConnect(): Promise<void> {}
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === "Escape" && showConnectionForm.value) {
-    hideConnectionForm();
+    dontAddNewConnection("form");
   }
+}
+
+function assignTabindex(): number {
+  return tabIndexCounter++;
 }
 
 window.addEventListener("keydown", handleKeydown);
@@ -250,11 +298,13 @@ onUnmounted(function () {
 
 <template>
   <ConfigModal
+    ref="configRef"
+    :tab-index-start="16 + filteredConnections.length"
     :is-open="showConfigModal"
-    @close="showConfigModal = false"
+    @close="dontAddNewConnection('import')"
     @submit="setConnection"
   />
-  <div class="h-screen flex text-text-light dark:text-text-dark">
+  <div class="h-screen flex text-text-light dark:text-text-dark tab">
     <main
       :class="[
         'flex-1 overflow-hidden flex flex-col items-center',
@@ -283,10 +333,22 @@ onUnmounted(function () {
         <div class="flex flex-col gap-[20px]">
           <p class="font-normal text-xl">Connect to your database to get started</p>
           <div class="flex items-center justify-center gap-[20px]">
-            <BasePrimaryButton @click="showConnectionForm = true">New Connection</BasePrimaryButton>
-            <BaseBorderButton type="button" @click="showConfigModal = true"
-              >Import Config</BaseBorderButton
+            <BasePrimaryButton
+              ref="newConnectionBtnRef"
+              type="button"
+              tabindex="1"
+              @click="addNewConnection('form')"
             >
+              New Connection
+            </BasePrimaryButton>
+            <BaseBorderButton
+              ref="importConfigBtnRef"
+              type="button"
+              tabindex="2"
+              @click="addNewConnection('import')"
+            >
+              Import Config
+            </BaseBorderButton>
           </div>
         </div>
         <div
@@ -296,6 +358,7 @@ onUnmounted(function () {
           <div class="flex justify-between items-center">
             <p class="font-normal text-xl">Recent Connections</p>
             <BaseTextField
+              tabindex="3"
               v-model="search"
               name="searchConnection"
               placeholder="Search connections..."
@@ -307,17 +370,20 @@ onUnmounted(function () {
           >
             <div
               v-for="(connection, index) in filteredConnections"
+              :tabindex="4 + index"
               :key="`connection-list-name-${index}`"
               :class="[
                 'py-2 flex-wrap cursor-pointer',
                 {
-                  'text-select-options-text-light hover:bg-select-options-background-hovered-light border-b border-textfield-border-light dark:text-select-options-text-dark dark:hover:bg-select-options-background-hovered-dark dark:border-textfield-border-dark':
+                  'text-select-options-text-light focus-visible:bg-select-options-background-hovered-light hover:bg-select-options-background-hovered-light border-b border-textfield-border-light dark:text-select-options-text-dark dark:focus-visible:bg-select-options-background-hovered-dark dark:hover:bg-select-options-background-hovered-dark dark:border-textfield-border-dark':
                     useConnectionStore().selectedConnection?.id !== connection.id,
                   'text-select-options-text-selected-light bg-select-options-background-selected-light hover:bg-select-options-background-selected-hover-light border-b border-textfield-border-light dark:text-select-options-text-selected-dark dark:bg-select-options-background-selected-dark dark:hover:bg-select-options-background-selected-hover-dark dark:border-textfield-border-dark':
                     useConnectionStore().selectedConnection?.id === connection.id,
                 },
               ]"
               @click="selectConnection(connection)"
+              @keydown.enter="selectConnection(connection)"
+              @keydown.space.prevent="selectConnection(connection)"
             >
               <h3 class="font-medium text-lg truncate" :title="connection.name">
                 {{ connection.name }}
@@ -354,7 +420,11 @@ onUnmounted(function () {
             class="w-full h-full flex flex-col items-center gap-[50px] justify-center bg-background-light dark:bg-background-dark"
           >
             <div class="relative w-[600px] flex flex-col items-center">
-              <BaseBorderedIconButton class="absolute top-6 right-0" @click="hideConnectionForm">
+              <BaseBorderedIconButton
+                class="absolute top-6 right-0"
+                :tabindex="15 + filteredConnections.length"
+                @click="dontAddNewConnection('form')"
+              >
                 <IconClose class="w-[30px] h-[30px] cursor-pointer text-primary" />
               </BaseBorderedIconButton>
               <div class="text-2xl font-bold mb-[10px]">
@@ -367,14 +437,16 @@ onUnmounted(function () {
             <ConnectionForm
               ref="formRef"
               v-model:connection="connection"
+              :assign-tabindex="assignTabindex"
               :database-drivers="databaseDrivers"
               :saving="saving"
               :testing="testing"
               :connecting="connecting"
+              :tab-index-start="3 + filteredConnections.length"
               @save="handleSave"
               @test="handleTest"
               @connect="handleConnect"
-              @cancel="hideConnectionForm"
+              @cancel="dontAddNewConnection('form')"
             />
           </div>
         </div>

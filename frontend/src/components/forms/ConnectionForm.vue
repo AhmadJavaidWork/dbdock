@@ -6,8 +6,8 @@ import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import { CreateDBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { connectionRules } from "@/validators/connection.rules";
-import { useVuelidate } from "@vuelidate/core";
-import { computed, ref, watch } from "vue";
+import { useVuelidate, Validation } from "@vuelidate/core";
+import { computed, Ref, ref, watch } from "vue";
 
 const emit = defineEmits<{
   save: [];
@@ -21,15 +21,18 @@ const {
   testing = false,
   saving = false,
   connecting = false,
+  tabIndexStart = 1,
 } = defineProps<{
   databaseDrivers: DatabaseDriver[];
   testing: boolean;
   saving: boolean;
   connecting: boolean;
+  tabIndexStart: number;
 }>();
 
 const form = defineModel<CreateDBConnection>("connection", { required: true });
 const databaseDriver = ref<DatabaseDriver | null>(null);
+const nameTextFieldRef = ref<InstanceType<typeof BaseTextField> | null>(null);
 
 const v$ = useVuelidate(connectionRules, form);
 
@@ -62,7 +65,11 @@ watch<number | null>(
   }
 );
 
-defineExpose({ v$, databaseDriver });
+defineExpose<{
+  v$: Ref<Validation>;
+  databaseDriver: Ref<DatabaseDriver | null>;
+  nameTextFieldRef: Ref<InstanceType<typeof BaseTextField> | null>;
+}>({ v$, databaseDriver, nameTextFieldRef });
 </script>
 
 <template>
@@ -70,6 +77,8 @@ defineExpose({ v$, databaseDriver });
     <h1 class="text-xl font-bold">New Connection</h1>
     <div class="grid grid-cols-4 gap-x-[15px] gap-y-[10px]">
       <BaseTextField
+        ref="nameTextFieldRef"
+        :tabindex="tabIndexStart + 1"
         class="col-span-4 lg:col-span-4"
         v-model="form.name"
         label="Name"
@@ -79,6 +88,7 @@ defineExpose({ v$, databaseDriver });
         :error="nameError"
       />
       <BaseSelectField
+        :tabindex="tabIndexStart + 2"
         class="col-span-4 lg:col-span-4"
         v-model="databaseDriver"
         label="Type"
@@ -91,6 +101,7 @@ defineExpose({ v$, databaseDriver });
         :error="typeError"
       />
       <BaseTextField
+        :tabindex="tabIndexStart + 3"
         class="col-span-4 lg:col-span-2"
         v-model="form.host"
         label="Host"
@@ -100,6 +111,7 @@ defineExpose({ v$, databaseDriver });
         :error="hostError"
       />
       <BaseTextField
+        :tabindex="tabIndexStart + 4"
         class="col-span-4 lg:col-span-2"
         v-model.number="form.port"
         label="Port"
@@ -109,6 +121,7 @@ defineExpose({ v$, databaseDriver });
         :error="portError"
       />
       <BaseTextField
+        :tabindex="tabIndexStart + 5"
         class="col-span-4 lg:col-span-2"
         v-model="form.username"
         label="Username"
@@ -118,6 +131,7 @@ defineExpose({ v$, databaseDriver });
         :error="usernameError"
       />
       <BaseTextField
+        :tabindex="tabIndexStart + 6"
         class="col-span-4 lg:col-span-2"
         v-model="form.password"
         label="Password"
@@ -128,6 +142,7 @@ defineExpose({ v$, databaseDriver });
         :error="passwordError"
       />
       <BaseTextField
+        :tabindex="tabIndexStart + 7"
         class="col-span-4 lg:col-span-4"
         v-model="form.databaseName"
         label="Database Name"
@@ -140,6 +155,7 @@ defineExpose({ v$, databaseDriver });
     <div class="flex justify-between">
       <div class="flex justify-start gap-[15px]">
         <BasePrimaryButton
+          :tabindex="tabIndexStart + 8"
           type="button"
           :disabled="saving || testing || connecting"
           :loading="saving"
@@ -148,6 +164,7 @@ defineExpose({ v$, databaseDriver });
           {{ connecting ? "Saving..." : "Save" }}
         </BasePrimaryButton>
         <BaseBorderButton
+          :tabindex="tabIndexStart + 9"
           type="button"
           :disabled="saving || testing || connecting"
           :loading="testing"
@@ -158,6 +175,7 @@ defineExpose({ v$, databaseDriver });
       </div>
       <div class="flex justify-start gap-[15px]">
         <BasePrimaryButton
+          :tabindex="tabIndexStart + 10"
           type="button"
           :disabled="saving || testing || connecting"
           :loading="connecting"
@@ -166,6 +184,7 @@ defineExpose({ v$, databaseDriver });
           {{ connecting ? "Connecting..." : "Connect" }}
         </BasePrimaryButton>
         <BaseBorderButton
+          :tabindex="tabIndexStart + 11"
           type="button"
           :disabled="saving || testing || connecting"
           @click="emit('cancel')"

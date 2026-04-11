@@ -8,15 +8,16 @@ import { CreateDBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, Ref, ref } from "vue";
 
 const emit = defineEmits<{
   close: [];
   submit: [conn: CreateDBConnection];
 }>();
 
-const { isOpen = false } = defineProps<{
+const { isOpen = false, tabIndexStart = 1 } = defineProps<{
   isOpen: boolean;
+  tabIndexStart: number;
 }>();
 
 let dragCounter = 0;
@@ -33,6 +34,7 @@ const connection = ref<CreateDBConnection>({
   databaseName: "",
 });
 const databaseDrivers = ref<DatabaseDriver[]>([]);
+const configTextAreaRef = ref<InstanceType<typeof BaseTextArea> | null>(null);
 
 const rules = {
   config: {
@@ -208,6 +210,10 @@ function openFileExplorer(): void {
 onMounted(async function (): Promise<void> {
   databaseDrivers.value = await fetchDatabaseDrivers();
 });
+
+defineExpose<{
+  configTextAreaRef: Ref<InstanceType<typeof BaseTextArea> | null>;
+}>({ configTextAreaRef });
 </script>
 
 <template>
@@ -235,16 +241,18 @@ onMounted(async function (): Promise<void> {
           ]"
         >
           <BaseTextArea
+            ref="configTextAreaRef"
             v-model="config"
             name="config"
             placeholder="Paste JSON, or ENV..."
             label="JSON, or ENV..."
             rows="10"
             required
+            :tabindex="tabIndexStart + 1"
             :error="configError"
           />
           <p class="font-bold text-xl text-primary">OR</p>
-          <BaseBorderButton @click="openFileExplorer">
+          <BaseBorderButton :tabindex="tabIndexStart + 2" @click="openFileExplorer">
             Drag and Drop or Upload Config
           </BaseBorderButton>
           <input
@@ -264,8 +272,19 @@ onMounted(async function (): Promise<void> {
       </div>
     </template>
     <template #modal-footer>
-      <BasePrimaryButton btn-class="px-[30px]" type="button" @click="submit">Add</BasePrimaryButton>
-      <BaseBorderButton btn-class="px-[30px]" type="button" @click="close">
+      <BasePrimaryButton
+        btn-class="px-[30px]"
+        type="button"
+        :tabindex="tabIndexStart + 3"
+        @click="submit"
+        >Add</BasePrimaryButton
+      >
+      <BaseBorderButton
+        btn-class="px-[30px]"
+        type="button"
+        :tabindex="tabIndexStart + 4"
+        @click="close"
+      >
         Cancel
       </BaseBorderButton>
     </template>

@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends string | number | readonly string[] | null | undefined">
+<script setup lang="ts">
 import { Ref, ref } from "vue";
 
 const {
@@ -10,6 +10,7 @@ const {
   error = null,
   type = "text",
   rows = 3,
+  tabindex = 1,
 } = defineProps<{
   name: string;
   label?: string;
@@ -19,13 +20,16 @@ const {
   error?: string | null;
   type?: string;
   rows?: number | string;
+  tabindex?: string | number;
 }>();
 
 const emit = defineEmits<{
   focus: [event: FocusEvent];
 }>();
 
-const model = defineModel<T | null>({ required: true });
+const model = defineModel<string | number | readonly string[] | null | undefined>({
+  required: true,
+});
 
 const inputRef = ref<HTMLInputElement | null>(null);
 
@@ -45,6 +49,7 @@ defineExpose<{
       ref="inputRef"
       :id="name"
       v-model="model"
+      :tabindex="tabindex"
       :rows="rows"
       :type="type"
       :placeholder="placeholder"

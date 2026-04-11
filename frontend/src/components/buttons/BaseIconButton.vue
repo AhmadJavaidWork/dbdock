@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ClassValue, computed } from "vue";
+import { ClassValue, computed, ref, Ref } from "vue";
 
 const {
   disabled = false,
@@ -13,6 +13,8 @@ const {
   loading?: boolean;
 }>();
 
+const btnRef = ref<HTMLButtonElement | null>(null);
+
 const emit = defineEmits<{
   (e: "click", event: MouseEvent): void;
   (e: "focus", event: FocusEvent): void;
@@ -24,20 +26,23 @@ const emit = defineEmits<{
 }>();
 
 const buttonClasses = computed(() => {
-  const base = `py-auto px-[7px] font-medium rounded transition-colors duration-200 dark:text-dark dark:hover:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
+  const base = `py-auto px-[7px] font-medium rounded transition-colors duration-200 dark:text-dark dark:hover:opacity-90 dark:focus-visible:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
 
   if (variant === "primary") {
-    return `${base} text-text-light bg-white border border-primary hover:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover`;
+    return `${base} text-text-light bg-white border border-primary hover:bg-primary-light focus-visible:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover dark:focus-visible:bg-secondary-dark-hover`;
   } else if (variant === "danger") {
-    return `${base} text-text-light bg-white border border-danger hover:bg-danger-light dark:text-text-dark dark:bg-danger dark:hover:bg-danger-dark-hover`;
+    return `${base} text-text-light bg-white border border-danger hover:bg-danger-light focus-visible:bg-danger-light dark:text-text-dark dark:bg-danger dark:hover:bg-danger-dark-hover dark:focus-visible:bg-danger-dark-hover`;
   }
 
   return base;
 });
+
+defineExpose<{ btnRef: Ref<HTMLButtonElement | null> }>({ btnRef });
 </script>
 
 <template>
   <button
+    ref="btnRef"
     v-bind="$attrs"
     :disabled="disabled"
     @click="emit('click', $event)"

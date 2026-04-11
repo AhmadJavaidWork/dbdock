@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ClassValue, computed } from "vue";
+import { ClassValue, computed, Ref, ref } from "vue";
 
 const {
   disabled = false,
@@ -23,21 +23,26 @@ const emit = defineEmits<{
   (e: "keyup", event: KeyboardEvent): void;
 }>();
 
+const btnRef = ref<HTMLButtonElement | null>(null);
+
 const buttonClasses = computed(() => {
-  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 dark:text-text-dark dark:hover:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
+  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 dark:text-text-dark dark:hover:opacity-90 dark:focus-visible:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
 
   if (variant === "primary") {
-    return `${base} text-text-light bg-white border border-primary hover:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover`;
+    return `${base} text-text-light bg-white border border-primary hover:bg-primary-light focus-visible:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover dark:focus-visible:bg-secondary-dark-hover`;
   } else if (variant === "danger") {
-    return `${base} text-text-light bg-white border border-danger hover:bg-danger-light dark:text-text-dark dark:bg-danger dark:hover:bg-danger-dark-hover`;
+    return `${base} text-text-light bg-white border border-danger hover:bg-danger-light focus-visible:bg-danger-light dark:text-text-dark dark:bg-danger dark:hover:bg-danger-dark-hover dark:focus-visible:bg-danger-dark-hover`;
   }
 
   return base;
 });
+
+defineExpose<{ btnRef: Ref<HTMLButtonElement | null> }>({ btnRef });
 </script>
 
 <template>
   <button
+    ref="btnRef"
     v-bind="$attrs"
     :disabled="disabled"
     @click="emit('click', $event)"
