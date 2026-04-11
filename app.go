@@ -35,6 +35,10 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
+func (a *App) Reload() {
+	runtime.WindowReload(a.ctx)
+}
+
 func (a *App) SetTheme(dark bool) {
 	if dark {
 		runtime.WindowSetDarkTheme(a.ctx)

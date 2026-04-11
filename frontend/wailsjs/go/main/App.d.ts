@@ -10,6 +10,8 @@ export function GetSupportedDatabases():Promise<Array<models.DatabaseDriver>>;
 
 export function GetThemeConfig():Promise<models.ThemeConfig>;
 
+export function Reload():Promise<void>;
+
 export function SetTheme(arg1:boolean):Promise<void>;
 
 export function TestConnection(arg1:models.CreateDBConnection,arg2:models.DatabaseDriver):Promise<string>;

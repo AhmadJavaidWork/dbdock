@@ -18,6 +18,10 @@ export function GetThemeConfig() {
   return window['go']['main']['App']['GetThemeConfig']();
 }
 
+export function Reload() {
+  return window['go']['main']['App']['Reload']();
+}
+
 export function SetTheme(arg1) {
   return window['go']['main']['App']['SetTheme'](arg1);
 }

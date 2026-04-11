@@ -19,7 +19,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-function handleEscape(e: KeyboardEvent) {
+function handleKeydown(e: KeyboardEvent) {
   if (e.key === "Escape" && isOpen) {
     e.stopImmediatePropagation();
     emit("close");
@@ -30,9 +30,9 @@ watch(
   () => isOpen,
   function (newVal) {
     if (newVal) {
-      window.addEventListener("keydown", handleEscape, true);
+      window.addEventListener("keydown", handleKeydown, true);
     } else {
-      window.removeEventListener("keydown", handleEscape, true);
+      window.removeEventListener("keydown", handleKeydown, true);
     }
   }
 );
