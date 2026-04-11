@@ -3,7 +3,7 @@ import { useLoaderStore } from "@/stores/loader";
 </script>
 
 <template>
-  <transition name="fade">
+  <Transition name="fade">
     <div v-if="useLoaderStore().isLoading" class="fixed inset-0 z-[9999]">
       <div
         class="absolute inset-0 flex items-center justify-center z-[9999] bg-black/30 backdrop-blur-sm"
@@ -13,7 +13,7 @@ import { useLoaderStore } from "@/stores/loader";
         ></div>
       </div>
     </div>
-  </transition>
+  </Transition>
 </template>
 
 <style scoped>

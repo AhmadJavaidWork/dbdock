@@ -76,6 +76,8 @@ export namespace models {
 	    databaseName: string;
 	    id: number;
 	    // Go type: time
+	    lastUsedAt?: any;
+	    // Go type: time
 	    createdAt: any;
 	    // Go type: time
 	    updatedAt: any;
@@ -95,6 +97,7 @@ export namespace models {
 	        this.password = source["password"];
 	        this.databaseName = source["databaseName"];
 	        this.id = source["id"];
+	        this.lastUsedAt = this.convertValues(source["lastUsedAt"], null);
 	        this.createdAt = this.convertValues(source["createdAt"], null);
 	        this.updatedAt = this.convertValues(source["updatedAt"], null);
 	        this.databaseDriver = this.convertValues(source["databaseDriver"], DatabaseDriver);

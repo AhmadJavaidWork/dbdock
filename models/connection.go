@@ -18,9 +18,10 @@ type CreateDBConnection struct {
 
 type DBConnectionEntity struct {
 	DBConnectionBase
-	ID        int       `json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID         int        `json:"id"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
 }
 
 type DBConnection struct {

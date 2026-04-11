@@ -1,17 +1,16 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 
-import NewConnectionLayout from "@/layouts/NewConnectionLayout.vue";
-import ConnectionPage from "@/pages/connection.page.vue";
+import WelcomeLayout from "@/layouts/WelcomeLayout.vue";
 
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    component: NewConnectionLayout,
+    component: WelcomeLayout,
     children: [
       {
-        path: "",
-        name: "connection",
-        component: ConnectionPage,
+        path: "/",
+        name: "Welcome",
+        component: import("@/pages/welcome.page.vue"),
       },
     ],
   },

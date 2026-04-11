@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ClassValue, computed } from "vue";
+import { ClassValue } from "vue";
 
 const {
   disabled = false,
-  variant = "primary",
   btnClass = "",
   loading = false,
 } = defineProps<{
@@ -22,18 +21,6 @@ const emit = defineEmits<{
   (e: "keydown", event: KeyboardEvent): void;
   (e: "keyup", event: KeyboardEvent): void;
 }>();
-
-const buttonClasses = computed(() => {
-  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 dark:text-text-dark dark:hover:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
-
-  if (variant === "primary") {
-    return `${base} text-text-light bg-white border border-primary hover:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover`;
-  } else if (variant === "danger") {
-    return `${base} text-text-light bg-white border border-danger hover:bg-danger-light dark:text-text-dark dark:bg-danger dark:hover:bg-danger-dark-hover`;
-  }
-
-  return base;
-});
 </script>
 
 <template>
@@ -48,7 +35,7 @@ const buttonClasses = computed(() => {
     @keydown="emit('keydown', $event)"
     @keyup="emit('keyup', $event)"
     :class="[
-      buttonClasses,
+      'w-[40px] h-[40px] flex items-center justify-center font-medium rounded-full transition-colors duration-200 dark:hover:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none text-text-light bg-white border-2 border-primary hover:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover',
       btnClass,
       {
         'opacity-70': loading,

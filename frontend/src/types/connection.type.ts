@@ -14,6 +14,7 @@ export type CreateDBConnection = DBConnectionBase;
 
 export type DBConnectionEntity = DBConnectionBase & {
   id: number;
+  lastUsedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };

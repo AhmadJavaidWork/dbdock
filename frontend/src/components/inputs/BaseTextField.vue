@@ -2,16 +2,16 @@
 import { Ref, ref } from "vue";
 
 const {
-  label = "",
   name = "",
+  label = "",
   maxlength = undefined,
   placeholder = "",
   required = false,
   error = null,
   type = "text",
 } = defineProps<{
-  label?: string;
   name: string;
+  label?: string;
   maxlength?: number;
   placeholder?: string;
   required?: boolean;
@@ -51,13 +51,12 @@ defineExpose<{
         {
           'bg-textfield-empty-light ring-textfield-border-light placeholder:text-textfield-placeholder-light dark:bg-textfield-empty-dark dark:ring-textfield-border-dark dark:placeholder:text-textfield-placeholder-dark':
             !model && !error,
-          'bg-textfield-filled-light dark:bg-textfield-filled-dark': model && !error,
+          'bg-textfield-filled-light dark:bg-textfield-filled-dark ring-textfield-border-light dark:ring-textfield-border-dark':
+            model && !error,
           'focus:outline-none focus:ring-textfield-border-focused-border-light focus:bg-textfield-filled-light dark:focus:ring-textfield-border-focused-border-dark dark:focus:bg-textfield-filled-dark':
             !error,
           'ring-textfield-border-light bg-textfield-error-light focus:ring-textfield-border-error-light focus:bg-textfield-error-light placeholder:text-textfield-placeholder-error-light dark:ring-textfield-border-dark dark:bg-textfield-error-dark dark:focus:ring-textfield-border-error-dark dark:focus:bg-textfield-error-dark dark:placeholder:text-textfield-placeholder-error-dark':
             error,
-          'ring-textfield-border-light bg-textfield-filled-light dark:ring-textfield-border-dark dark:bg-textfield-filled-dark':
-            model,
         },
       ]"
       @focus="emit('focus', $event)"

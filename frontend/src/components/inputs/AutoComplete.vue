@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T extends string | Record<string, any>">
 import IconSpinner from "@/components/icons/IconSpinner.vue";
-import FormTextField from "@/components/inputs/FormTextField.vue";
+import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import debounce from "lodash.debounce";
 import { ComponentPublicInstance, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="relative w-full" ref="containerRef">
-    <FormTextField
+    <BaseTextField
       ref="textFieldRef"
       v-model="search"
       :name="`${name}-autocomplete-search`"

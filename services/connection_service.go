@@ -74,6 +74,7 @@ func (cs *ConnectionService) Create(conn models.CreateDBConnection) (models.DBCo
 		&created.Username,
 		&created.Password,
 		&created.DatabaseName,
+		&created.LastUsedAt,
 		&created.CreatedAt,
 		&created.UpdatedAt,
 		&created.DatabaseDriver.ID,
@@ -102,6 +103,7 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 			c.username,
 			c.password,
 			c.database_name,
+			c.last_used_at,
 			c.created_at,
 			c.updated_at,
 			d.id AS database_driver_id,
@@ -114,6 +116,7 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 		LEFT JOIN database_drivers d
 		ON c.database_driver_id = d.id
 		WHERE c.deleted_at IS NULL AND d.deleted_at IS NULL
+		ORDER BY c.updated_at DESC 
 	`
 
 	rows, err := db.DB.Query(query)
@@ -134,6 +137,7 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 			&c.Username,
 			&c.Password,
 			&c.DatabaseName,
+			&c.LastUsedAt,
 			&c.CreatedAt,
 			&c.UpdatedAt,
 			&c.DatabaseDriver.ID,
@@ -155,13 +159,14 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnection, error) {
 	query := `
 		UPDATE connections SET
-		database_driver_id = ?, 
-		name = ?, 
-		host = ?, 
-		port = ? , 
-		username = ?, 
-		password = ?, 
-		database_name = ? 
+		database_driver_id = ?,
+		name = ?,
+		host = ?,
+		port = ?,
+		username = ?,
+		password = ?,
+		database_name = ?,
+		updated_at = DATETIME('now')
 		WHERE id = ?
 	`
 	_, err := db.DB.Exec(
@@ -193,6 +198,7 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 		&updated.Username,
 		&updated.Password,
 		&updated.DatabaseName,
+		&updated.LastUsedAt,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 		&updated.DatabaseDriver.ID,
@@ -220,6 +226,7 @@ const getConnectionByIDQuery = `
 		c.username,
 		c.password,
 		c.database_name,
+		c.last_used_at,
 		c.created_at,
 		c.updated_at,
 		d.id AS database_driver_id,

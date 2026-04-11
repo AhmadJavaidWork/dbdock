@@ -2,7 +2,7 @@
 import BaseIconButton from "@/components/buttons/BaseIconButton.vue";
 import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
 import IconPlus from "@/components/icons/IconPlus.vue";
-import FormTextField from "@/components/inputs/FormTextField.vue";
+import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import { useConnectionStore } from "@/stores/connection.store";
 import { useThemeStore } from "@/stores/theme.store";
 import { DBConnection } from "@/types/connection.type";
@@ -102,7 +102,7 @@ onMounted(async function () {
       >
         <IconPlus class="w-[20px] h-[20px]" />
       </BaseIconButton>
-      <FormTextField v-model="search" name="searchConnection" placeholder="Search connections..." />
+      <BaseTextField v-model="search" name="searchConnection" placeholder="Search connections..." />
     </div>
 
     <nav class="flex-1 overflow-y-auto">

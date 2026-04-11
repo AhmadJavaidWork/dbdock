@@ -26,7 +26,7 @@ export const useConnectionStore = defineStore("connection", () => {
 
   async function createConnection(conn: CreateDBConnection): Promise<string> {
     const res: SaveDBConnectionResponse = await connectionService.createConnection(conn);
-    connections.value.push(res.connection);
+    connections.value.unshift(res.connection);
     return res.message;
   }
 
@@ -34,8 +34,8 @@ export const useConnectionStore = defineStore("connection", () => {
     const res: SaveDBConnectionResponse = await connectionService.updateConnection(conn);
     for (let i = 0; i < connections.value.length; i++) {
       if (connections.value[i].id === res.connection.id) {
-        connections.value[i] = res.connection;
-        selectedConnection.value = res.connection;
+        connections.value.splice(i, 1);
+        connections.value.unshift(res.connection);
         break;
       }
     }

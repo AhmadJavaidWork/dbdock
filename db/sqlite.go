@@ -50,6 +50,7 @@ func createTables() {
 			username TEXT NOT NULL,
 			password TEXT NOT NULL,
 			database_name TEXT NOT NULL,
+			last_used_at TIMESTAMP,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			deleted_at TIMESTAMP,

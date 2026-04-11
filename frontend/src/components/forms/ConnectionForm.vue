@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import BaseBorderButton from "@/components/buttons/BaseBorderButton.vue";
 import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
-import FormSelect from "@/components/inputs/FormSelect.vue";
-import FormTextField from "@/components/inputs/FormTextField.vue";
+import BaseSelectField from "@/components/inputs/BaseSelectField.vue";
+import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import { CreateDBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { connectionRules } from "@/validators/connection.rules";
@@ -13,6 +13,7 @@ const emit = defineEmits<{
   save: [];
   test: [];
   connect: [];
+  cancel: [];
 }>();
 
 const {
@@ -55,7 +56,7 @@ watch<number | null>(
       const dd = databaseDrivers.find((dd) => dd.id === ddId);
       if (dd) {
         databaseDriver.value = dd;
-        form.value.port = dd.defaultPort;
+        if (!form.value.port) form.value.port = dd.defaultPort;
       }
     }
   }
@@ -65,10 +66,10 @@ defineExpose({ v$, databaseDriver });
 </script>
 
 <template>
-  <div>
-    <h1 class="text-xl font-bold mb-[20px]">New Connection</h1>
+  <div class="flex flex-col gap-[20px]">
+    <h1 class="text-xl font-bold">New Connection</h1>
     <div class="grid grid-cols-4 gap-x-[15px] gap-y-[10px]">
-      <FormTextField
+      <BaseTextField
         class="col-span-4 lg:col-span-4"
         v-model="form.name"
         label="Name"
@@ -77,7 +78,7 @@ defineExpose({ v$, databaseDriver });
         placeholder="Connection Name"
         :error="nameError"
       />
-      <FormSelect
+      <BaseSelectField
         class="col-span-4 lg:col-span-4"
         v-model="databaseDriver"
         label="Type"
@@ -89,7 +90,7 @@ defineExpose({ v$, databaseDriver });
         :options="databaseDrivers"
         :error="typeError"
       />
-      <FormTextField
+      <BaseTextField
         class="col-span-4 lg:col-span-2"
         v-model="form.host"
         label="Host"
@@ -98,7 +99,7 @@ defineExpose({ v$, databaseDriver });
         placeholder="DB Host"
         :error="hostError"
       />
-      <FormTextField
+      <BaseTextField
         class="col-span-4 lg:col-span-2"
         v-model.number="form.port"
         label="Port"
@@ -107,7 +108,7 @@ defineExpose({ v$, databaseDriver });
         placeholder="DB Port"
         :error="portError"
       />
-      <FormTextField
+      <BaseTextField
         class="col-span-4 lg:col-span-2"
         v-model="form.username"
         label="Username"
@@ -116,7 +117,7 @@ defineExpose({ v$, databaseDriver });
         placeholder="Username"
         :error="usernameError"
       />
-      <FormTextField
+      <BaseTextField
         class="col-span-4 lg:col-span-2"
         v-model="form.password"
         label="Password"
@@ -126,7 +127,7 @@ defineExpose({ v$, databaseDriver });
         placeholder="Password"
         :error="passwordError"
       />
-      <FormTextField
+      <BaseTextField
         class="col-span-4 lg:col-span-4"
         v-model="form.databaseName"
         label="Database Name"
@@ -136,7 +137,7 @@ defineExpose({ v$, databaseDriver });
         :error="databaseError"
       />
     </div>
-    <div class="flex justify-between mt-[20px]">
+    <div class="flex justify-between">
       <div class="flex justify-start gap-[15px]">
         <BasePrimaryButton
           type="button"
@@ -155,14 +156,23 @@ defineExpose({ v$, databaseDriver });
           {{ testing ? "Testing..." : "Test" }}
         </BaseBorderButton>
       </div>
-      <BasePrimaryButton
-        type="button"
-        :disabled="saving || testing || connecting"
-        :loading="connecting"
-        @click="emit('connect')"
-      >
-        {{ connecting ? "Connecting..." : "Connect" }}
-      </BasePrimaryButton>
+      <div class="flex justify-start gap-[15px]">
+        <BasePrimaryButton
+          type="button"
+          :disabled="saving || testing || connecting"
+          :loading="connecting"
+          @click="emit('connect')"
+        >
+          {{ connecting ? "Connecting..." : "Connect" }}
+        </BasePrimaryButton>
+        <BaseBorderButton
+          type="button"
+          :disabled="saving || testing || connecting"
+          @click="emit('cancel')"
+        >
+          Cancel
+        </BaseBorderButton>
+      </div>
     </div>
   </div>
 </template>
