@@ -224,14 +224,15 @@ async function handleSave(): Promise<void> {
 
 async function handleConnect(): Promise<void> {}
 
-function handleEscape(e: KeyboardEvent) {
+function handleKeydown(e: KeyboardEvent) {
   if (e.key === "Escape" && showConnectionForm.value) {
     hideConnectionForm();
   }
 }
 
+window.addEventListener("keydown", handleKeydown);
+
 onMounted(async function (): Promise<void> {
-  window.addEventListener("keydown", handleEscape);
   try {
     useConnectionStore().getConnections();
     databaseDrivers.value = await fetchDatabaseDrivers();
@@ -243,7 +244,7 @@ onMounted(async function (): Promise<void> {
 });
 
 onUnmounted(function () {
-  window.removeEventListener("keydown", handleEscape);
+  window.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
@@ -287,35 +288,32 @@ onUnmounted(function () {
               placeholder="Search connections..."
             />
           </div>
-          <div class="flex-1 overflow-y-auto">
+          <div class="flex-1 overflow-y-auto max-h-[200px]">
             <div
               v-for="(connection, index) in filteredConnections"
               :key="`connection-list-name-${index}`"
+              :class="[
+                'py-2 flex-wrap cursor-pointer',
+                {
+                  'text-select-options-text-light hover:bg-select-options-background-hovered-light border-b border-textfield-border-light dark:text-select-options-text-dark dark:hover:bg-select-options-background-hovered-dark dark:border-textfield-border-dark':
+                    useConnectionStore().selectedConnection?.id !== connection.id,
+                  'text-select-options-text-selected-light bg-select-options-background-selected-light hover:bg-select-options-background-selected-hover-light border-b border-textfield-border-light dark:text-select-options-text-selected-dark dark:bg-select-options-background-selected-dark dark:hover:bg-select-options-background-selected-hover-dark dark:border-textfield-border-dark':
+                    useConnectionStore().selectedConnection?.id === connection.id,
+                },
+              ]"
+              @click="selectConnection(connection)"
             >
-              <div
-                :class="[
-                  'py-2 flex-wrap cursor-pointer',
-                  {
-                    'text-select-options-text-light hover:bg-select-options-background-hovered-light border-b border-textfield-border-light dark:text-select-options-text-dark dark:hover:bg-select-options-background-hovered-dark dark:border-textfield-border-dark':
-                      useConnectionStore().selectedConnection?.id !== connection.id,
-                    'text-select-options-text-selected-light bg-select-options-background-selected-light hover:bg-select-options-background-selected-hover-light border-b border-textfield-border-light dark:text-select-options-text-selected-dark dark:bg-select-options-background-selected-dark dark:hover:bg-select-options-background-selected-hover-dark dark:border-textfield-border-dark':
-                      useConnectionStore().selectedConnection?.id === connection.id,
-                  },
-                ]"
-                @click="selectConnection(connection)"
-              >
-                <h3 class="font-medium text-lg truncate" :title="connection.name">
-                  {{ connection.name }}
-                </h3>
-                <div class="flex items-center gap-1 text-md min-w-0">
-                  <span class="truncate min-w-0" :title="connection.host">
-                    {{ connection.host }}
-                  </span>
-                  <span class="shrink-0">:</span>
-                  <span class="truncate min-w-0" :title="connection.databaseName">
-                    {{ connection.databaseName }}
-                  </span>
-                </div>
+              <h3 class="font-medium text-lg truncate" :title="connection.name">
+                {{ connection.name }}
+              </h3>
+              <div class="flex items-center gap-1 text-md min-w-0">
+                <span class="truncate min-w-0" :title="connection.host">
+                  {{ connection.host }}
+                </span>
+                <span class="shrink-0">:</span>
+                <span class="truncate min-w-0" :title="connection.databaseName">
+                  {{ connection.databaseName }}
+                </span>
               </div>
             </div>
           </div>
