@@ -255,9 +255,22 @@ onUnmounted(function () {
     @submit="setConnection"
   />
   <div class="h-screen flex text-text-light dark:text-text-dark">
-    <main class="flex-1 overflow-hidden flex flex-col items-center justify-center">
+    <main
+      :class="[
+        'flex-1 overflow-hidden flex flex-col items-center',
+        {
+          'py-[100px]': useConnectionStore().connections.length > 0,
+          'justify-center': useConnectionStore().connections.length === 0,
+        },
+      ]"
+    >
       <div
-        class="max-h-screen flex flex-col items-center gap-[50px] justify-center bg-background-light dark:bg-background-dark"
+        :class="[
+          'flex flex-col items-center gap-[50px] justify-center bg-background-light dark:bg-background-dark',
+          {
+            'max-h-[calc(100vh-200px)]': useConnectionStore().connections.length > 0,
+          },
+        ]"
       >
         <div class="flex flex-col items-center">
           <div class="text-2xl font-bold mb-[10px]">
@@ -277,7 +290,7 @@ onUnmounted(function () {
           </div>
         </div>
         <div
-          v-if="filteredConnections.length > 0"
+          v-if="useConnectionStore().connections.length > 0"
           class="self-start min-w-[650px] flex flex-col gap-[20px]"
         >
           <div class="flex justify-between items-center">
@@ -288,7 +301,10 @@ onUnmounted(function () {
               placeholder="Search connections..."
             />
           </div>
-          <div class="flex-1 overflow-y-auto max-h-[200px]">
+          <div
+            v-if="filteredConnections.length > 0"
+            class="overflow-y-scroll overscroll-none max-h-[calc(100vh-200px-158px-100px-83.5px-35px-20px)]"
+          >
             <div
               v-for="(connection, index) in filteredConnections"
               :key="`connection-list-name-${index}`"
@@ -316,6 +332,9 @@ onUnmounted(function () {
                 </span>
               </div>
             </div>
+          </div>
+          <div v-else class="text-center max-h-[calc(100vh-200px-158px-100px-83.5px-35px-20px)]">
+            No connections found
           </div>
         </div>
       </div>
