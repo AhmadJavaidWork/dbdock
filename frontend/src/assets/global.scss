@@ -1,3 +1,9 @@
+html,
+body {
+  scroll-behavior: smooth;
+  overscroll-behavior: none;
+}
+
 body.resizing {
   user-select: none;
   cursor: col-resize;
