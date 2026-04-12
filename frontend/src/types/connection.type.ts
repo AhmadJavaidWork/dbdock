@@ -14,7 +14,8 @@ export type CreateDBConnection = DBConnectionBase;
 
 export type DBConnectionEntity = DBConnectionBase & {
   id: number;
-  lastUsedAt?: string | null;
+  lastUsedAt: string | null;
+  isConnected: boolean;
   createdAt: string;
   updatedAt: string;
 };

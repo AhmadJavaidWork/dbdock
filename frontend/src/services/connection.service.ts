@@ -5,8 +5,11 @@ import {
 } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import {
+  ConnectToDatabase,
   CreateConnection,
   DeleteConnection,
+  DisconnectFromDatabase,
+  GetActiveConnections,
   GetConnections,
   TestConnection,
   UpdateConnection,
@@ -41,10 +44,25 @@ export function deleteConnection(id: number): Promise<void> {
   return DeleteConnection(id);
 }
 
+export function connectToDatabase(conn: DBConnection): Promise<string> {
+  return ConnectToDatabase(toWailsConnection(conn));
+}
+
+export function disconnectFromDatabase(id: number): Promise<string> {
+  return DisconnectFromDatabase(id);
+}
+
+export function getActiveConnections(): Promise<DBConnection[] | null> {
+  return GetActiveConnections();
+}
+
 export default {
   testConnection,
   createConnection,
   getConnections,
   updateConnection,
   deleteConnection,
+  connectToDatabase,
+  disconnectFromDatabase,
+  getActiveConnections,
 };

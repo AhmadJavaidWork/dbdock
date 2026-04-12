@@ -26,7 +26,7 @@ func (cs *ConnectionService) Test(conn models.CreateDBConnection, driver models.
 	case "mysql":
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", conn.Username, conn.Password, conn.Host, conn.Port, conn.DatabaseName)
 	default:
-		return fmt.Errorf("unsupported db")
+		return fmt.Errorf("unsupported driver")
 	}
 
 	db, err := sql.Open(driver.Name, dsn)
@@ -40,8 +40,8 @@ func (cs *ConnectionService) Test(conn models.CreateDBConnection, driver models.
 
 func (cs *ConnectionService) Create(conn models.CreateDBConnection) (models.DBConnection, error) {
 	query := `
-		INSERT INTO connections (database_driver_id, name, host, port, username, password, database_name)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO connections (database_driver_id, name, host, port, username, password, database_name, is_connected)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	result, err := db.DB.Exec(
 		query,
@@ -52,6 +52,7 @@ func (cs *ConnectionService) Create(conn models.CreateDBConnection) (models.DBCo
 		conn.Username,
 		conn.Password,
 		conn.DatabaseName,
+		false,
 	)
 	if err != nil {
 		return models.DBConnection{}, err
@@ -75,6 +76,7 @@ func (cs *ConnectionService) Create(conn models.CreateDBConnection) (models.DBCo
 		&created.Password,
 		&created.DatabaseName,
 		&created.LastUsedAt,
+		&created.IsConnected,
 		&created.CreatedAt,
 		&created.UpdatedAt,
 		&created.DatabaseDriver.ID,
@@ -104,6 +106,7 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 			c.password,
 			c.database_name,
 			c.last_used_at,
+			c.is_connected,
 			c.created_at,
 			c.updated_at,
 			d.id AS database_driver_id,
@@ -138,6 +141,7 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 			&c.Password,
 			&c.DatabaseName,
 			&c.LastUsedAt,
+			&c.IsConnected,
 			&c.CreatedAt,
 			&c.UpdatedAt,
 			&c.DatabaseDriver.ID,
@@ -166,6 +170,7 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 		username = ?,
 		password = ?,
 		database_name = ?,
+		is_connected = ?,
 		updated_at = DATETIME('now')
 		WHERE id = ?
 	`
@@ -178,6 +183,7 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 		conn.Username,
 		conn.Password,
 		conn.DatabaseName,
+		conn.IsConnected,
 		conn.ID,
 	)
 
@@ -199,6 +205,7 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 		&updated.Password,
 		&updated.DatabaseName,
 		&updated.LastUsedAt,
+		&updated.IsConnected,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 		&updated.DatabaseDriver.ID,
@@ -218,11 +225,77 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 
 func (cs *ConnectionService) Delete(id int) error {
 	query := `
-		DELETE FROM connections WHERE  id=?
+		UPDATE connections SET deleted_at=DATETIME('now') WHERE id=?
 	`
 
 	_, err := db.DB.Exec(query, id)
 	return err
+}
+
+func (cs *ConnectionService) GetActiveConnections() ([]models.DBConnection, error) {
+	query := `
+		SELECT
+			c.id,
+			c.database_driver_id,
+			c.name,
+			c.host,
+			c.port,
+			c.username,
+			c.password,
+			c.database_name,
+			c.last_used_at,
+			c.is_connected,
+			c.created_at,
+			c.updated_at,
+			d.id AS database_driver_id,
+			d.name AS database_driver_name,
+			d.label AS database_driver_label,
+			d.default_port AS database_driver_default_port,
+			d.created_at AS default_port_created_at,
+			d.updated_at AS default_port_updated_at
+		FROM connections c
+		LEFT JOIN database_drivers d
+		ON c.database_driver_id = d.id
+		WHERE c.deleted_at IS NULL AND c.is_connected=TRUE AND d.deleted_at IS NULL
+	`
+
+	rows, err := db.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []models.DBConnection
+	for rows.Next() {
+		var c models.DBConnection
+		err := rows.Scan(
+			&c.ID,
+			&c.DatabaseDriverID,
+			&c.Name,
+			&c.Host,
+			&c.Port,
+			&c.Username,
+			&c.Password,
+			&c.DatabaseName,
+			&c.LastUsedAt,
+			&c.IsConnected,
+			&c.CreatedAt,
+			&c.UpdatedAt,
+			&c.DatabaseDriver.ID,
+			&c.DatabaseDriver.Name,
+			&c.DatabaseDriver.Label,
+			&c.DatabaseDriver.DefaultPort,
+			&c.DatabaseDriver.CreatedAt,
+			&c.DatabaseDriver.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, c)
+	}
+
+	return result, nil
 }
 
 const getConnectionByIDQuery = `
@@ -236,6 +309,7 @@ const getConnectionByIDQuery = `
 		c.password,
 		c.database_name,
 		c.last_used_at,
+		c.is_connected,
 		c.created_at,
 		c.updated_at,
 		d.id AS database_driver_id,

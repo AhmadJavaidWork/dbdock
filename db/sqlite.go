@@ -1,3 +1,4 @@
+// Package db provides database initialization and management functionality for local sqlite database.
 package db
 
 import (
@@ -60,6 +61,17 @@ func createTables() {
 	_, err = DB.Exec(query)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	query = `
+		ALTER TABLE connections ADD COLUMN is_connected BOOLEAN DEFAULT FALSE;
+	`
+
+	_, err = DB.Exec(query)
+	if err != nil {
+		if err.Error() != "duplicate column name: is_connected" {
+			log.Fatal(err)
+		}
 	}
 
 	seedDrivers()

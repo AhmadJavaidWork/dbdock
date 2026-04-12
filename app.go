@@ -14,6 +14,7 @@ import (
 type App struct {
 	appConfigDir      string
 	ctx               context.Context
+	connectionManager *services.ConnectionManager
 	connectionService *services.ConnectionService
 	databaseService   *services.DatabaseService
 	themeService      *services.ThemeService
@@ -24,6 +25,7 @@ func NewApp(appConfigDir string) *App {
 	db.Init(appConfigDir)
 	return &App{
 		appConfigDir:      appConfigDir,
+		connectionManager: services.NewConnectionManager(),
 		connectionService: services.NewConnectionService(),
 		databaseService:   services.NewDatabaseService(),
 		themeService:      services.NewThemeService(appConfigDir),
@@ -34,6 +36,10 @@ func NewApp(appConfigDir string) *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+func (a *App) shutdown(ctx context.Context) {
+	a.connectionManager.DisconnectAll()
 }
 
 func (a *App) Reload() {
@@ -101,4 +107,23 @@ func (a *App) ReadDroppedFile(path string) (string, error) {
 	}
 
 	return string(data), nil
+}
+
+func (a *App) ConnectToDatabase(conn models.DBConnection) (string, error) {
+	if err := a.connectionManager.Connect(conn); err != nil {
+		return "", err
+	}
+	return "Connected successfully", nil
+}
+
+func (a *App) DisconnectFromDatabase(id int) (string, error) {
+	if err := a.connectionManager.Disconnect(id); err != nil {
+		return "", err
+	}
+
+	return "Disconnected successfully", nil
+}
+
+func (a *App) GetActiveConnections() ([]models.DBConnection, error) {
+	return a.connectionService.GetActiveConnections()
 }

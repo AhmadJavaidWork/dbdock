@@ -14,6 +14,11 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: "/connections/:id",
+    name: "Connections",
+    component: import("@/pages/connected.page.vue"),
+  },
 ];
 
 export const router = createRouter({

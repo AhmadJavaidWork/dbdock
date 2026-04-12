@@ -5,6 +5,7 @@ import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
 import ConnectionForm from "@/components/forms/ConnectionForm.vue";
 import IconClose from "@/components/icons/IconClose.vue";
 import IconCloseCircle from "@/components/icons/IconCloseCircle.vue";
+import IconDot from "@/components/icons/IconDot.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import ConfigModal from "@/components/modals/ConfigModal.vue";
 import { useConfirm } from "@/composables/useConfirm";
@@ -20,12 +21,14 @@ import { CreateDBConnection, DBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 const { prompt } = usePrompt();
 const { contextMenu } = useContextMenu();
 const { confirm } = useConfirm();
+const router = useRouter();
 
-const { selectedConnection } = storeToRefs(useConnectionStore());
+const { selectedConnection, connections } = storeToRefs(useConnectionStore());
 
 const databaseDrivers = ref<DatabaseDriver[]>([]);
 const connection = ref<CreateDBConnection>({
@@ -50,10 +53,8 @@ const showConnectionForm = ref<boolean>(false);
 const showConfigModal = ref<boolean>(false);
 
 const filteredConnections = computed((): DBConnection[] => {
-  if (!search.value) return useConnectionStore().connections;
-  return useConnectionStore().connections.filter((c) =>
-    c.name.toLowerCase().includes(search.value)
-  );
+  if (!search.value) return connections.value;
+  return connections.value.filter((c) => c.name.toLowerCase().includes(search.value));
 });
 
 async function setConnection(conn: CreateDBConnection): Promise<void> {
@@ -270,12 +271,14 @@ async function updateConnection(): Promise<void> {
     const conn: DBConnection = {
       id: selectedConnection.value.id,
       name: connection.value.name,
-      databaseDriverId: connection.value.databaseDriverId,
+      databaseDriverId: formRef.value.databaseDriver.id,
       host: connection.value.host,
       port: connection.value.port,
       username: connection.value.username,
       password: connection.value.password,
       databaseName: connection.value.databaseName,
+      lastUsedAt: selectedConnection.value.lastUsedAt,
+      isConnected: selectedConnection.value.isConnected,
       createdAt: selectedConnection.value.createdAt,
       updatedAt: selectedConnection.value.updatedAt,
       databaseDriver: formRef.value.databaseDriver,
@@ -302,14 +305,75 @@ function selectDefaultDatabaseDriver(): void {
 }
 
 async function handleSave(): Promise<void> {
-  if (useConnectionStore().selectedConnection) {
+  if (selectedConnection.value) {
     updateConnection();
   } else {
     createConnection();
   }
 }
 
-async function handleConnect(): Promise<void> {}
+async function handleConnect(): Promise<void> {
+  if (!formRef.value || !formRef.value.databaseDriver) return;
+  const valid = await formRef.value.v$.$validate();
+  if (!valid) return;
+  saving.value = true;
+
+  useLoaderStore().show();
+  try {
+    if (selectedConnection.value) {
+      const conn: DBConnection = {
+        id: selectedConnection.value.id,
+        name: connection.value.name,
+        databaseDriverId: formRef.value.databaseDriver.id,
+        host: connection.value.host,
+        port: connection.value.port,
+        username: connection.value.username,
+        password: connection.value.password,
+        databaseName: connection.value.databaseName,
+        lastUsedAt: selectedConnection.value.lastUsedAt,
+        isConnected: selectedConnection.value.isConnected,
+        createdAt: selectedConnection.value.createdAt,
+        updatedAt: selectedConnection.value.updatedAt,
+        databaseDriver: formRef.value.databaseDriver,
+      };
+      await useConnectionStore().updateConnection(conn);
+    } else {
+      const conn: CreateDBConnection = {
+        name: connection.value.name,
+        databaseDriverId: connection.value.databaseDriverId,
+        host: connection.value.host,
+        port: connection.value.port,
+        username: connection.value.username,
+        password: connection.value.password,
+        databaseName: connection.value.databaseName,
+      };
+      await useConnectionStore().createConnection(conn);
+      selectedConnection.value = connections.value[0];
+    }
+    connecting.value = true;
+    saving.value = false;
+    const message = await useConnectionStore().connectToDatabase(selectedConnection.value);
+    useToast(message, "success");
+    router.replace({ name: "Connections", params: { id: selectedConnection.value.id } });
+  } catch (error: unknown) {
+    const message = connectionErrorToText(
+      error,
+      formRef.value.databaseDriver,
+      connection.value.username,
+      connection.value.databaseName
+    );
+    prompt({
+      type: "error",
+      title: "Connection failed",
+      message,
+    });
+    console.log("Connection failed: ", message);
+  } finally {
+    saving.value = false;
+    connecting.value = false;
+    useLoaderStore().hide();
+  }
+}
 
 function handleKeydown(e: KeyboardEvent): void {
   if (e.key === "Escape" && showConnectionForm.value) {
@@ -348,8 +412,8 @@ onUnmounted(function (): void {
       :class="[
         'flex-1 overflow-hidden flex flex-col items-center',
         {
-          'py-[100px]': useConnectionStore().connections.length > 0,
-          'justify-center': useConnectionStore().connections.length === 0,
+          'py-[100px]': connections.length > 0,
+          'justify-center': connections.length === 0,
         },
       ]"
     >
@@ -357,7 +421,7 @@ onUnmounted(function (): void {
         :class="[
           'flex flex-col items-center gap-[50px] justify-center bg-background-light dark:bg-background-dark',
           {
-            'max-h-[calc(100vh-200px)]': useConnectionStore().connections.length > 0,
+            'max-h-[calc(100vh-200px)]': connections.length > 0,
           },
         ]"
       >
@@ -391,7 +455,7 @@ onUnmounted(function (): void {
           </div>
         </div>
         <div
-          v-if="useConnectionStore().connections.length > 0"
+          v-if="connections.length > 0"
           class="self-start min-w-[650px] max-w-[650px] flex flex-col gap-[20px]"
         >
           <div class="px-5 flex justify-between items-center">
@@ -412,12 +476,12 @@ onUnmounted(function (): void {
               :tabindex="4 + index"
               :key="`connection-list-name-${index}`"
               :class="[
-                'py-2 px-5 flex-wrap cursor-pointer last:border-b-0',
+                'flex justify-between items-center py-2 px-5 gap-2 cursor-pointer last:border-b-0',
                 {
                   'text-select-options-text-light focus-visible:bg-select-options-background-hovered-light hover:bg-select-options-background-hovered-light border-b border-textfield-border-light dark:text-select-options-text-dark dark:focus-visible:bg-select-options-background-hovered-dark dark:hover:bg-select-options-background-hovered-dark dark:border-textfield-border-dark':
-                    useConnectionStore().selectedConnection?.id !== connection.id,
+                    selectedConnection?.id !== connection.id,
                   'text-select-options-text-selected-light bg-select-options-background-selected-light hover:bg-select-options-background-selected-hover-light border-b border-textfield-border-light dark:text-select-options-text-selected-dark dark:bg-select-options-background-selected-dark dark:hover:bg-select-options-background-selected-hover-dark dark:border-textfield-border-dark':
-                    useConnectionStore().selectedConnection?.id === connection.id,
+                    selectedConnection?.id === connection.id,
                 },
               ]"
               @click="selectConnection(connection)"
@@ -425,18 +489,24 @@ onUnmounted(function (): void {
               @keydown.space.prevent="selectConnection(connection)"
               @contextmenu.prevent="openContextMenu($event, connection)"
             >
-              <h3 class="font-medium text-lg truncate" :title="connection.name">
-                {{ connection.name }}
-              </h3>
-              <div class="flex items-center gap-1 text-md min-w-0">
-                <span class="truncate min-w-0" :title="connection.host">
-                  {{ connection.host }}
-                </span>
-                <span class="shrink-0">:</span>
-                <span class="truncate min-w-0" :title="connection.databaseName">
-                  {{ connection.databaseName }}
-                </span>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-medium text-lg truncate" :title="connection.name">
+                  {{ connection.name }}
+                </h3>
+                <div class="flex items-center gap-1 text-md min-w-0">
+                  <span class="truncate min-w-0" :title="connection.host">
+                    {{ connection.host }}
+                  </span>
+                  <span class="shrink-0">:</span>
+                  <span class="truncate min-w-0" :title="connection.databaseName">
+                    {{ connection.databaseName }}
+                  </span>
+                </div>
               </div>
+              <IconDot
+                v-if="connection.isConnected"
+                class="text-text-success dark:text-text-success-darker w-[40px] h-[40px] flex-shrink-0"
+              />
             </div>
           </div>
           <div v-else class="text-center max-h-[calc(100vh-200px-158px-100px-83.5px-35px-20px)]">

@@ -75,8 +75,9 @@ export namespace models {
 	    password: string;
 	    databaseName: string;
 	    id: number;
+	    isConnected: boolean;
 	    // Go type: time
-	    lastUsedAt?: any;
+	    lastUsedAt: any;
 	    // Go type: time
 	    createdAt: any;
 	    // Go type: time
@@ -97,6 +98,7 @@ export namespace models {
 	        this.password = source["password"];
 	        this.databaseName = source["databaseName"];
 	        this.id = source["id"];
+	        this.isConnected = source["isConnected"];
 	        this.lastUsedAt = this.convertValues(source["lastUsedAt"], null);
 	        this.createdAt = this.convertValues(source["createdAt"], null);
 	        this.updatedAt = this.convertValues(source["updatedAt"], null);
