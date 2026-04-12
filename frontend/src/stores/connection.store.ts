@@ -42,6 +42,11 @@ export const useConnectionStore = defineStore("connection", () => {
     return res.message;
   }
 
+  async function deleteConnection(id: number): Promise<void> {
+    await connectionService.deleteConnection(id);
+    connections.value = connections.value.filter((con) => con.id !== id);
+  }
+
   return {
     connections,
     activeConnection,
@@ -49,5 +54,6 @@ export const useConnectionStore = defineStore("connection", () => {
     getConnections,
     createConnection,
     updateConnection,
+    deleteConnection,
   };
 });

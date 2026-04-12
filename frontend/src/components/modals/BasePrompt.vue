@@ -13,7 +13,7 @@ const { isOpen, options, onClose } = usePrompt();
   <BaseModal
     :is-open="isOpen"
     :title="options.title"
-    footer-class="px-0 py-0"
+    footer-class="!p-0"
     body-class="flex flex-col items-center gap-[15px]"
     @close="onClose"
   >
@@ -39,7 +39,7 @@ const { isOpen, options, onClose } = usePrompt();
     </template>
     <template #modal-footer>
       <button
-        class="font-medium px-[20px] py-[8px] w-full bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark rounded-e-prompt rounded-b-prompt hover:bg-select-options-background-hovered-light dark:hover:bg-select-options-background-hovered-dark"
+        class="font-medium px-[20px] py-[15px] w-full bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark rounded-e-prompt rounded-b-prompt hover:bg-select-options-background-hovered-light dark:hover:bg-select-options-background-hovered-dark"
         @click="onClose"
       >
         {{ options.closeBtnTxt }}

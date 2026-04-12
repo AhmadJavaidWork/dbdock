@@ -88,3 +88,7 @@ func (a *App) UpdateConnection(conn models.DBConnection) (models.SaveDBConnectio
 		Message:    "Connection updated successfully",
 	}, nil
 }
+
+func (a *App) DeleteConnection(connectionID int) error {
+	return a.connectionService.Delete(connectionID)
+}

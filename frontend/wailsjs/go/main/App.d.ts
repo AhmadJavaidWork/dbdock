@@ -4,6 +4,8 @@ import {models} from '../models';
 
 export function CreateConnection(arg1:models.CreateDBConnection):Promise<models.SaveDBConnectionResponse>;
 
+export function DeleteConnection(arg1:number):Promise<void>;
+
 export function GetConnections():Promise<Array<models.DBConnection>>;
 
 export function GetSupportedDatabases():Promise<Array<models.DatabaseDriver>>;

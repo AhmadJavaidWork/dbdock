@@ -6,6 +6,7 @@ import ConnectionForm from "@/components/forms/ConnectionForm.vue";
 import IconClose from "@/components/icons/IconClose.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import ConfigModal from "@/components/modals/ConfigModal.vue";
+import { useConfirm } from "@/composables/useConfirm";
 import { useContextMenu } from "@/composables/useContextMenu";
 import { usePrompt } from "@/composables/usePrompt";
 import { useToast } from "@/composables/useToast";
@@ -18,9 +19,11 @@ import { CreateDBConnection, DBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
+import IconCloseCircle from "../components/icons/IconCloseCircle.vue";
 
 const { prompt } = usePrompt();
 const { contextMenu } = useContextMenu();
+const { confirm } = useConfirm();
 
 const { selectedConnection } = storeToRefs(useConnectionStore());
 
@@ -76,7 +79,7 @@ async function setConnection(conn: CreateDBConnection): Promise<void> {
 }
 
 async function openContextMenu(e: MouseEvent, conn: DBConnection): Promise<void> {
-  const options: string[] = ["Edit"];
+  const options: string[] = ["Edit", "Delete"];
   const res = await contextMenu({
     position: {
       x: e.clientX,
@@ -88,8 +91,28 @@ async function openContextMenu(e: MouseEvent, conn: DBConnection): Promise<void>
     case "Edit":
       selectConnection(conn);
       break;
+    case "Delete":
+      selectedConnection.value = conn;
+      deleteConnection();
+      break;
     default:
       break;
+  }
+}
+
+async function deleteConnection(): Promise<void> {
+  if (!selectedConnection.value) return;
+
+  const res = await confirm({
+    title: "Delete connection",
+    message: "Are you sure you want to delete this connection?",
+    icon: IconCloseCircle,
+    iconClass: "flex-shrink-0 text-text-danger dark:text-text-danger-darker w-[40px] h-[40px]",
+  });
+
+  if (res) {
+    await useConnectionStore().deleteConnection(selectedConnection.value.id);
+    hideConnectionForm();
   }
 }
 
@@ -462,6 +485,7 @@ onUnmounted(function (): void {
               @test="handleTest"
               @connect="handleConnect"
               @cancel="dontAddNewConnection('form')"
+              @delete="deleteConnection"
             />
           </div>
         </div>

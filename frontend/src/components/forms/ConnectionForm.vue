@@ -3,6 +3,7 @@ import BaseBorderButton from "@/components/buttons/BaseBorderButton.vue";
 import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
 import BaseSelectField from "@/components/inputs/BaseSelectField.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
+import { useConnectionStore } from "@/stores/connection.store";
 import { CreateDBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { connectionRules } from "@/validators/connection.rules";
@@ -14,6 +15,7 @@ const emit = defineEmits<{
   test: [];
   connect: [];
   cancel: [];
+  delete: [];
 }>();
 
 const {
@@ -74,7 +76,18 @@ defineExpose<{
 
 <template>
   <div class="flex flex-col gap-[20px]">
-    <h1 class="text-xl font-bold">New Connection</h1>
+    <div class="flex w-full justify-between">
+      <h1 class="text-xl font-bold">
+        {{ useConnectionStore().selectedConnection ? "Update" : "Add" }} Connection
+      </h1>
+      <BasePrimaryButton
+        v-if="useConnectionStore().selectedConnection"
+        variant="danger"
+        @click="emit('delete')"
+      >
+        Delete
+      </BasePrimaryButton>
+    </div>
     <div class="grid grid-cols-4 gap-x-[15px] gap-y-[10px]">
       <BaseTextField
         ref="nameTextFieldRef"

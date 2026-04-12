@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLoader from "@/components/common/AppLoader.vue";
 import BaseContextMenu from "@/components/common/BaseContextMenu.vue";
+import BaseConfirm from "@/components/modals/BaseConfirm.vue";
 import BasePrompt from "@/components/modals/BasePrompt.vue";
 import { onUnmounted } from "vue";
 import { Reload } from "~/wailsjs/go/main/App";
@@ -32,4 +33,5 @@ onUnmounted(function (): void {
   </main>
   <BasePrompt />
   <BaseContextMenu />
+  <BaseConfirm />
 </template>

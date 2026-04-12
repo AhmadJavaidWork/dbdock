@@ -6,6 +6,7 @@ import {
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import {
   CreateConnection,
+  DeleteConnection,
   GetConnections,
   TestConnection,
   UpdateConnection,
@@ -36,9 +37,14 @@ export function updateConnection(conn: DBConnection): Promise<SaveDBConnectionRe
   return UpdateConnection(toWailsConnection(conn));
 }
 
+export function deleteConnection(id: number): Promise<void> {
+  return DeleteConnection(id);
+}
+
 export default {
   testConnection,
   createConnection,
   getConnections,
   updateConnection,
+  deleteConnection,
 };

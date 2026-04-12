@@ -216,6 +216,15 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 	return updated, nil
 }
 
+func (cs *ConnectionService) Delete(id int) error {
+	query := `
+		DELETE FROM connections WHERE  id=?
+	`
+
+	_, err := db.DB.Exec(query, id)
+	return err
+}
+
 const getConnectionByIDQuery = `
 	SELECT
 		c.id,
