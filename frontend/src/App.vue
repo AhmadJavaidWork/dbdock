@@ -17,12 +17,20 @@ function handleContextMenu(e: MouseEvent): void {
   e.preventDefault();
 }
 
+function handleDragAndDrop(e: DragEvent): void {
+  e.preventDefault();
+}
+
 window.addEventListener("keydown", handleKeydown, true);
 window.addEventListener("contextmenu", handleContextMenu);
+window.addEventListener("dragover", handleDragAndDrop, false);
+window.addEventListener("drop", handleDragAndDrop, false);
 
 onUnmounted(function (): void {
   window.removeEventListener("keydown", handleKeydown, true);
   window.removeEventListener("contextmenu", handleContextMenu);
+  window.removeEventListener("dragover", handleDragAndDrop, false);
+  window.removeEventListener("drop", handleDragAndDrop, false);
 });
 </script>
 

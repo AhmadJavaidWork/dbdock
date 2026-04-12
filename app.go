@@ -5,6 +5,7 @@ import (
 	"DBDock/models"
 	"DBDock/services"
 	"context"
+	"os"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -91,4 +92,13 @@ func (a *App) UpdateConnection(conn models.DBConnection) (models.SaveDBConnectio
 
 func (a *App) DeleteConnection(connectionID int) error {
 	return a.connectionService.Delete(connectionID)
+}
+
+func (a *App) ReadDroppedFile(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }

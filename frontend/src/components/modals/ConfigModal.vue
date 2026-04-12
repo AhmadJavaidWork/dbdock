@@ -8,7 +8,9 @@ import { CreateDBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { useVuelidate } from "@vuelidate/core";
 import { helpers, required } from "@vuelidate/validators";
-import { computed, onMounted, Ref, ref } from "vue";
+import { computed, onMounted, onUnmounted, Ref, ref } from "vue";
+import { ReadDroppedFile } from "~/wailsjs/go/main/App";
+import { EventsOff, EventsOn } from "~/wailsjs/runtime";
 
 const emit = defineEmits<{
   close: [];
@@ -195,6 +197,8 @@ async function handleFileUpload(e: Event): Promise<void> {
 }
 
 async function handleDrop(e: DragEvent): Promise<void> {
+  dragCounter = 0;
+  dragging.value = false;
   const file = e.dataTransfer?.files?.[0];
   if (!file) return;
 
@@ -207,8 +211,27 @@ function openFileExplorer(): void {
   fileInput.value.click();
 }
 
+async function readFileContent(path: string) {
+  try {
+    config.value = await ReadDroppedFile(path);
+    submit();
+  } catch (error) {
+    console.log("error", error);
+  }
+}
+
 onMounted(async function (): Promise<void> {
   databaseDrivers.value = await fetchDatabaseDrivers();
+
+  EventsOn("wails:file-drop", (x, y, paths) => {
+    if (paths && paths.length > 0) {
+      readFileContent(paths[0]);
+    }
+  });
+});
+
+onUnmounted(function (): void {
+  EventsOff("wails:file-drop");
 });
 
 defineExpose<{

@@ -4,6 +4,7 @@ import BaseBorderedIconButton from "@/components/buttons/BaseBorderedIconButton.
 import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
 import ConnectionForm from "@/components/forms/ConnectionForm.vue";
 import IconClose from "@/components/icons/IconClose.vue";
+import IconCloseCircle from "@/components/icons/IconCloseCircle.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import ConfigModal from "@/components/modals/ConfigModal.vue";
 import { useConfirm } from "@/composables/useConfirm";
@@ -19,7 +20,6 @@ import { CreateDBConnection, DBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
-import IconCloseCircle from "../components/icons/IconCloseCircle.vue";
 
 const { prompt } = usePrompt();
 const { contextMenu } = useContextMenu();
@@ -72,9 +72,10 @@ async function setConnection(conn: CreateDBConnection): Promise<void> {
   }
 
   showConnectionForm.value = true;
-  if (formRef.value) {
+  if (formRef.value && formRef.value.nameTextFieldRef && formRef.value.nameTextFieldRef.inputRef) {
     await nextTick();
-    formRef.value.nameTextFieldRef?.inputRef?.focus();
+    await nextTick();
+    formRef.value.nameTextFieldRef.inputRef.focus();
   }
 }
 

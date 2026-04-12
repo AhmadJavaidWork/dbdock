@@ -22,6 +22,10 @@ export function GetThemeConfig() {
   return window['go']['main']['App']['GetThemeConfig']();
 }
 
+export function ReadDroppedFile(arg1) {
+  return window['go']['main']['App']['ReadDroppedFile'](arg1);
+}
+
 export function Reload() {
   return window['go']['main']['App']['Reload']();
 }
