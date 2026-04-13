@@ -76,13 +76,29 @@ func (a *App) CreateConnection(conn models.CreateDBConnection) (models.SaveDBCon
 		return models.SaveDBConnectionResponse{}, err
 	}
 	return models.SaveDBConnectionResponse{
-		Connection: connection,
-		Message:    "Connection added successfully",
+		Connection: models.ConnectionWithStatus{
+			DBConnection: connection,
+			IsConnected:  false,
+		},
+		Message: "Connection added successfully",
 	}, nil
 }
 
-func (a *App) GetConnections() ([]models.DBConnection, error) {
-	return a.connectionService.GetAll()
+func (a *App) GetConnections() ([]models.ConnectionWithStatus, error) {
+	connections, err := a.connectionService.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.ConnectionWithStatus
+	for _, conn := range connections {
+		result = append(result, models.ConnectionWithStatus{
+			DBConnection: conn,
+			IsConnected:  a.connectionManager.IsConnected(conn.ID),
+		})
+	}
+
+	return result, nil
 }
 
 func (a *App) UpdateConnection(conn models.DBConnection) (models.SaveDBConnectionResponse, error) {
@@ -90,13 +106,27 @@ func (a *App) UpdateConnection(conn models.DBConnection) (models.SaveDBConnectio
 	if err != nil {
 		return models.SaveDBConnectionResponse{}, err
 	}
+
+	err = a.connectionManager.Disconnect(conn.ID)
+	if err != nil {
+		return models.SaveDBConnectionResponse{}, err
+	}
+
 	return models.SaveDBConnectionResponse{
-		Connection: connection,
-		Message:    "Connection updated successfully",
+		Connection: models.ConnectionWithStatus{
+			DBConnection: connection,
+			IsConnected:  false,
+		},
+		Message: "Connection updated successfully",
 	}, nil
 }
 
 func (a *App) DeleteConnection(connectionID int) error {
+	err := a.connectionManager.Disconnect(connectionID)
+	if err != nil {
+		return err
+	}
+
 	return a.connectionService.Delete(connectionID)
 }
 
@@ -124,6 +154,33 @@ func (a *App) DisconnectFromDatabase(id int) (string, error) {
 	return "Disconnected successfully", nil
 }
 
-func (a *App) GetActiveConnections() ([]models.DBConnection, error) {
-	return a.connectionService.GetActiveConnections()
+func (a *App) GetActiveConnections() ([]models.ConnectionWithStatus, error) {
+	connections, err := a.connectionService.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.ConnectionWithStatus
+	for _, conn := range connections {
+		if a.connectionManager.IsConnected(conn.ID) {
+			result = append(result, models.ConnectionWithStatus{
+				DBConnection: conn,
+				IsConnected:  true,
+			})
+		}
+	}
+
+	return result, nil
+}
+
+func (a *App) RunQuery(connectionID int, query string) ([]map[string]interface{}, error) {
+	return a.connectionManager.Query(connectionID, query)
+}
+
+func (a *App) ListTables(connectionID int, driver string) ([]models.Table, error) {
+	return a.connectionManager.ListTables(connectionID, driver)
+}
+
+func (a *App) IsConnected(connectionID int) bool {
+	return a.connectionManager.IsConnected(connectionID)
 }

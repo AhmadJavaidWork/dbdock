@@ -14,8 +14,7 @@ export type CreateDBConnection = DBConnectionBase;
 
 export type DBConnectionEntity = DBConnectionBase & {
   id: number;
-  lastUsedAt: string | null;
-  isConnected: boolean;
+  lastUsedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -24,7 +23,11 @@ export type DBConnection = DBConnectionEntity & {
   databaseDriver: DatabaseDriver;
 };
 
+export type ConnectionWithStatus = DBConnection & {
+  isConnected: boolean;
+};
+
 export type SaveDBConnectionResponse = {
-  connection: DBConnection;
+  connection: ConnectionWithStatus;
   message: string;
 };

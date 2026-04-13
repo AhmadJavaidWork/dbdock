@@ -40,8 +40,8 @@ func (cs *ConnectionService) Test(conn models.CreateDBConnection, driver models.
 
 func (cs *ConnectionService) Create(conn models.CreateDBConnection) (models.DBConnection, error) {
 	query := `
-		INSERT INTO connections (database_driver_id, name, host, port, username, password, database_name, is_connected)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO connections (database_driver_id, name, host, port, username, password, database_name)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 	result, err := db.DB.Exec(
 		query,
@@ -76,7 +76,6 @@ func (cs *ConnectionService) Create(conn models.CreateDBConnection) (models.DBCo
 		&created.Password,
 		&created.DatabaseName,
 		&created.LastUsedAt,
-		&created.IsConnected,
 		&created.CreatedAt,
 		&created.UpdatedAt,
 		&created.DatabaseDriver.ID,
@@ -106,7 +105,6 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 			c.password,
 			c.database_name,
 			c.last_used_at,
-			c.is_connected,
 			c.created_at,
 			c.updated_at,
 			d.id AS database_driver_id,
@@ -141,7 +139,6 @@ func (cs *ConnectionService) GetAll() ([]models.DBConnection, error) {
 			&c.Password,
 			&c.DatabaseName,
 			&c.LastUsedAt,
-			&c.IsConnected,
 			&c.CreatedAt,
 			&c.UpdatedAt,
 			&c.DatabaseDriver.ID,
@@ -170,7 +167,6 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 		username = ?,
 		password = ?,
 		database_name = ?,
-		is_connected = ?,
 		updated_at = DATETIME('now')
 		WHERE id = ?
 	`
@@ -183,7 +179,6 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 		conn.Username,
 		conn.Password,
 		conn.DatabaseName,
-		conn.IsConnected,
 		conn.ID,
 	)
 
@@ -205,7 +200,6 @@ func (cs *ConnectionService) Update(conn models.DBConnection) (models.DBConnecti
 		&updated.Password,
 		&updated.DatabaseName,
 		&updated.LastUsedAt,
-		&updated.IsConnected,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 		&updated.DatabaseDriver.ID,
@@ -244,7 +238,6 @@ func (cs *ConnectionService) GetActiveConnections() ([]models.DBConnection, erro
 			c.password,
 			c.database_name,
 			c.last_used_at,
-			c.is_connected,
 			c.created_at,
 			c.updated_at,
 			d.id AS database_driver_id,
@@ -256,7 +249,7 @@ func (cs *ConnectionService) GetActiveConnections() ([]models.DBConnection, erro
 		FROM connections c
 		LEFT JOIN database_drivers d
 		ON c.database_driver_id = d.id
-		WHERE c.deleted_at IS NULL AND c.is_connected=TRUE AND d.deleted_at IS NULL
+		WHERE c.deleted_at IS NULL AND AND d.deleted_at IS NULL
 	`
 
 	rows, err := db.DB.Query(query)
@@ -278,7 +271,6 @@ func (cs *ConnectionService) GetActiveConnections() ([]models.DBConnection, erro
 			&c.Password,
 			&c.DatabaseName,
 			&c.LastUsedAt,
-			&c.IsConnected,
 			&c.CreatedAt,
 			&c.UpdatedAt,
 			&c.DatabaseDriver.ID,
@@ -309,7 +301,6 @@ const getConnectionByIDQuery = `
 		c.password,
 		c.database_name,
 		c.last_used_at,
-		c.is_connected,
 		c.created_at,
 		c.updated_at,
 		d.id AS database_driver_id,

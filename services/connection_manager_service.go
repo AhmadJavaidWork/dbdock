@@ -4,6 +4,7 @@ package services
 import (
 	"DBDock/db"
 	"DBDock/models"
+	"DBDock/services/schema"
 	"database/sql"
 	"fmt"
 	"sync"
@@ -55,7 +56,7 @@ func (cm *ConnectionManager) Connect(conn models.DBConnection) error {
 	}
 
 	query := `
-	UPDATE connections SET last_used_at=DATETIME('now'), is_connected=TRUE where id=?
+		UPDATE connections SET last_used_at=DATETIME('now') where id=?
 	`
 
 	_, err = db.DB.Exec(query, conn.ID)
@@ -67,34 +68,98 @@ func (cm *ConnectionManager) Connect(conn models.DBConnection) error {
 	return nil
 }
 
-func (cm *ConnectionManager) Disconnect(id int) error {
+func (cm *ConnectionManager) IsConnected(connectionID int) bool {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 
-	if _, exists := cm.connections[id]; !exists {
+	_, exists := cm.connections[connectionID]
+	return exists
+}
+
+func (cm *ConnectionManager) Disconnect(connectionID int) error {
+	cm.mu.Lock()
+	defer cm.mu.Unlock()
+
+	if _, exists := cm.connections[connectionID]; !exists {
 		return nil
 	}
 
-	dbConn := cm.connections[id]
+	dbConn := cm.connections[connectionID]
+	delete(cm.connections, connectionID)
 
 	query := `
-		UPDATE connections SET last_used_at=DATETIME('now'), is_connected=FALSE where id=?
+		UPDATE connections SET last_used_at=DATETIME('now') where id=?
 	`
 
-	db.DB.Exec(query, id)
+	db.DB.Exec(query, connectionID)
 	return dbConn.Close()
 
 }
 
 func (cm *ConnectionManager) DisconnectAll() {
-	for id, dbConn := range cm.connections {
+	for connectionID, dbConn := range cm.connections {
 		query := `
-			UPDATE connections SET last_used_at=DATETIME('now'), is_connected=FALSE where id=?
+			UPDATE connections SET last_used_at=DATETIME('now') where id=?
 		`
 
-		fmt.Println("closing connection with id=", id)
+		fmt.Println("closing connection with id=", connectionID)
 
-		db.DB.Exec(query, id)
+		db.DB.Exec(query, connectionID)
 		dbConn.Close()
 	}
+}
+
+func (cm *ConnectionManager) Query(connectionID int, query string) ([]map[string]interface{}, error) {
+	cm.mu.Lock()
+	dbConn, exists := cm.connections[connectionID]
+	cm.mu.Unlock()
+
+	if !exists {
+		return nil, fmt.Errorf("connection not found")
+	}
+
+	rows, err := dbConn.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	cols, _ := rows.Columns()
+	results := []map[string]interface{}{}
+
+	for rows.Next() {
+		values := make([]interface{}, len(cols))
+		ptrs := make([]interface{}, len(cols))
+		for i := range values {
+			ptrs[i] = &values[i]
+		}
+
+		rows.Scan(ptrs...)
+
+		rowMap := map[string]interface{}{}
+		for i, col := range cols {
+			rowMap[col] = values[i]
+		}
+
+		results = append(results, rowMap)
+	}
+
+	return results, nil
+}
+
+func (cm *ConnectionManager) ListTables(connectionID int, driver string) ([]models.Table, error) {
+	cm.mu.Lock()
+	dbConn, exists := cm.connections[connectionID]
+	cm.mu.Unlock()
+
+	if !exists {
+		return nil, fmt.Errorf("connection not found")
+	}
+
+	provider, err := schema.GetSchemaProvider(driver)
+	if err != nil {
+		return nil, err
+	}
+
+	return provider.ListTables(dbConn)
 }

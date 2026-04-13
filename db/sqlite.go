@@ -74,6 +74,15 @@ func createTables() {
 		}
 	}
 
+	query = `
+		ALTER TABLE connections DROP COLUMN is_connected;
+	`
+
+	_, err = DB.Exec(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	seedDrivers()
 }
 

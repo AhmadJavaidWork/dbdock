@@ -19,11 +19,10 @@ type CreateDBConnection struct {
 
 type DBConnectionEntity struct {
 	DBConnectionBase
-	ID          int       `json:"id"`
-	IsConnected bool      `json:"isConnected"`
-	LastUsedAt  time.Time `json:"lastUsedAt"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	ID         int        `json:"id"`
+	LastUsedAt *time.Time `json:"lastUsedAt"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
 }
 
 type DBConnection struct {
@@ -31,7 +30,12 @@ type DBConnection struct {
 	DatabaseDriver DatabaseDriver `json:"databaseDriver"`
 }
 
+type ConnectionWithStatus struct {
+	DBConnection
+	IsConnected bool `json:"isConnected"`
+}
+
 type SaveDBConnectionResponse struct {
-	Connection DBConnection `json:"connection"`
-	Message    string       `json:"message"`
+	Connection ConnectionWithStatus `json:"connection"`
+	Message    string               `json:"message"`
 }

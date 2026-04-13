@@ -3,8 +3,7 @@ import AppLoader from "@/components/common/AppLoader.vue";
 import BaseContextMenu from "@/components/common/BaseContextMenu.vue";
 import BaseConfirm from "@/components/modals/BaseConfirm.vue";
 import BasePrompt from "@/components/modals/BasePrompt.vue";
-import { useConnectionStore } from "@/stores/connection.store";
-import { onMounted, onUnmounted } from "vue";
+import { onUnmounted } from "vue";
 import { Reload } from "~/wailsjs/go/main/App";
 
 function handleKeydown(e: KeyboardEvent): void {
@@ -26,11 +25,6 @@ window.addEventListener("keydown", handleKeydown, true);
 window.addEventListener("contextmenu", handleContextMenu);
 window.addEventListener("dragover", handleDragAndDrop, false);
 window.addEventListener("drop", handleDragAndDrop, false);
-
-onMounted(function () {
-  useConnectionStore().getConnections();
-  useConnectionStore().getActiveConnections();
-});
 
 onUnmounted(function (): void {
   window.removeEventListener("keydown", handleKeydown, true);

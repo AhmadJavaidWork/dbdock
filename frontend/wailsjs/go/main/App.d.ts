@@ -10,17 +10,23 @@ export function DeleteConnection(arg1:number):Promise<void>;
 
 export function DisconnectFromDatabase(arg1:number):Promise<string>;
 
-export function GetActiveConnections():Promise<Array<models.DBConnection>>;
+export function GetActiveConnections():Promise<Array<models.ConnectionWithStatus>>;
 
-export function GetConnections():Promise<Array<models.DBConnection>>;
+export function GetConnections():Promise<Array<models.ConnectionWithStatus>>;
 
 export function GetSupportedDatabases():Promise<Array<models.DatabaseDriver>>;
 
 export function GetThemeConfig():Promise<models.ThemeConfig>;
 
+export function IsConnected(arg1:number):Promise<boolean>;
+
+export function ListTables(arg1:number,arg2:string):Promise<Array<models.Table>>;
+
 export function ReadDroppedFile(arg1:string):Promise<string>;
 
 export function Reload():Promise<void>;
+
+export function RunQuery(arg1:number,arg2:string):Promise<Array<Record<string, any>>>;
 
 export function SetTheme(arg1:boolean):Promise<void>;
 

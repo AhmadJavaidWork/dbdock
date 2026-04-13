@@ -1,4 +1,5 @@
 import {
+  ConnectionWithStatus,
   CreateDBConnection,
   DBConnection,
   SaveDBConnectionResponse,
@@ -32,7 +33,7 @@ export function createConnection(conn: CreateDBConnection): Promise<SaveDBConnec
   return CreateConnection(toWailsConnection(conn));
 }
 
-export async function getConnections(): Promise<DBConnection[] | null> {
+export async function getConnections(): Promise<ConnectionWithStatus[] | null> {
   return GetConnections();
 }
 
@@ -52,7 +53,7 @@ export function disconnectFromDatabase(id: number): Promise<string> {
   return DisconnectFromDatabase(id);
 }
 
-export function getActiveConnections(): Promise<DBConnection[] | null> {
+export function getActiveConnections(): Promise<ConnectionWithStatus[] | null> {
   return GetActiveConnections();
 }
 

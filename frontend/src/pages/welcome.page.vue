@@ -16,8 +16,8 @@ import { connectionErrorToText } from "@/errors/connection.error";
 import { testConnection } from "@/services/connection.service";
 import { fetchDatabaseDrivers } from "@/services/database.service";
 import { useConnectionStore } from "@/stores/connection.store";
-import { useLoaderStore } from "@/stores/loader";
-import { CreateDBConnection, DBConnection } from "@/types/connection.type";
+import { useLoaderStore } from "@/stores/loader.store";
+import { ConnectionWithStatus, CreateDBConnection, DBConnection } from "@/types/connection.type";
 import { DatabaseDriver } from "@/types/databaseDriver.types";
 import { storeToRefs } from "pinia";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
@@ -52,7 +52,7 @@ const search = ref<string>("");
 const showConnectionForm = ref<boolean>(false);
 const showConfigModal = ref<boolean>(false);
 
-const filteredConnections = computed((): DBConnection[] => {
+const filteredConnections = computed((): ConnectionWithStatus[] => {
   if (!search.value) return connections.value;
   return connections.value.filter((c) => c.name.toLowerCase().includes(search.value));
 });
@@ -80,7 +80,7 @@ async function setConnection(conn: CreateDBConnection): Promise<void> {
   }
 }
 
-async function openContextMenu(e: MouseEvent, conn: DBConnection): Promise<void> {
+async function openContextMenu(e: MouseEvent, conn: ConnectionWithStatus): Promise<void> {
   const options: string[] = ["Edit", "Delete"];
   const res = await contextMenu({
     position: {
@@ -118,7 +118,7 @@ async function deleteConnection(): Promise<void> {
   }
 }
 
-async function selectConnection(conn: DBConnection): Promise<void> {
+async function selectConnection(conn: ConnectionWithStatus): Promise<void> {
   connection.value = {
     name: conn.name,
     databaseDriverId: conn.databaseDriverId,
@@ -278,7 +278,6 @@ async function updateConnection(): Promise<void> {
       password: connection.value.password,
       databaseName: connection.value.databaseName,
       lastUsedAt: selectedConnection.value.lastUsedAt,
-      isConnected: selectedConnection.value.isConnected,
       createdAt: selectedConnection.value.createdAt,
       updatedAt: selectedConnection.value.updatedAt,
       databaseDriver: formRef.value.databaseDriver,
@@ -331,7 +330,6 @@ async function handleConnect(): Promise<void> {
         password: connection.value.password,
         databaseName: connection.value.databaseName,
         lastUsedAt: selectedConnection.value.lastUsedAt,
-        isConnected: selectedConnection.value.isConnected,
         createdAt: selectedConnection.value.createdAt,
         updatedAt: selectedConnection.value.updatedAt,
         databaseDriver: formRef.value.databaseDriver,

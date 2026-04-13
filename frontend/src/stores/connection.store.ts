@@ -1,16 +1,34 @@
+import connectionManagerService from "@/services/connection-manager.service";
 import connectionService from "@/services/connection.service";
 import {
+  ConnectionWithStatus,
   CreateDBConnection,
   DBConnection,
   SaveDBConnectionResponse,
 } from "@/types/connection.type";
+import { Table } from "@/types/table.types";
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 export const useConnectionStore = defineStore("connection", () => {
-  const connections = ref<DBConnection[]>([]);
-  const activeConnections = ref<DBConnection[]>([]);
-  const selectedConnection = ref<DBConnection | null>(null);
+  const connections = ref<ConnectionWithStatus[]>([]);
+  const activeConnections = ref<ConnectionWithStatus[]>([]);
+  const selectedConnection = ref<ConnectionWithStatus | null>(null);
+  const connectionsTables = ref<
+    Record<string, { tables: Table[]; schemas: Set<string | undefined> }>
+  >({});
+
+  const selectedConnectionTables = computed(function () {
+    if (!selectedConnection.value) return [];
+    if (!connectionsTables.value[selectedConnection.value.id]) return [];
+    return connectionsTables.value[selectedConnection.value.id].tables;
+  });
+
+  const selectedConnectionSchemas = computed(function () {
+    if (!selectedConnection.value) return [];
+    if (!connectionsTables.value[selectedConnection.value.id]) return [];
+    return connectionsTables.value[selectedConnection.value.id].schemas;
+  });
 
   async function getConnections(): Promise<void> {
     const res = await connectionService.getConnections();
@@ -34,6 +52,7 @@ export const useConnectionStore = defineStore("connection", () => {
         break;
       }
     }
+    activeConnections.value = activeConnections.value.filter((c) => c.id !== conn.id);
     selectedConnection.value = res.connection;
     return res.message;
   }
@@ -41,10 +60,11 @@ export const useConnectionStore = defineStore("connection", () => {
   async function deleteConnection(id: number): Promise<void> {
     await connectionService.deleteConnection(id);
     connections.value = connections.value.filter((c) => c.id !== id);
+    activeConnections.value = activeConnections.value.filter((c) => c.id !== id);
   }
 
-  async function connectToDatabase(conn: DBConnection): Promise<string> {
-    const res = await connectionService.connectToDatabase(conn);
+  async function connectToDatabase(conn: ConnectionWithStatus): Promise<string> {
+    const res = await connectionManagerService.connectToDatabase(conn);
     activeConnections.value.push(conn);
     for (let i = 0; i < connections.value.length; i++) {
       if (conn.id === connections.value[i].id) {
@@ -55,7 +75,7 @@ export const useConnectionStore = defineStore("connection", () => {
   }
 
   async function disconnectFromDatabase(id: number): Promise<string> {
-    const res = await connectionService.disconnectFromDatabase(id);
+    const res = await connectionManagerService.disconnectFromDatabase(id);
     activeConnections.value = activeConnections.value.filter((c) => c.id !== id);
     for (let i = 0; i < connections.value.length; i++) {
       if (id === connections.value[i].id) {
@@ -72,10 +92,35 @@ export const useConnectionStore = defineStore("connection", () => {
     }
   }
 
+  async function getTables(): Promise<void> {
+    try {
+      if (!selectedConnection.value) return;
+
+      const res = await connectionManagerService.listTables(
+        selectedConnection.value.id,
+        selectedConnection.value.databaseDriver.name
+      );
+      connectionsTables.value[selectedConnection.value.id] = {
+        tables: res,
+        schemas: new Set<string | undefined>(),
+      };
+      for (let i = 0; i < res.length; i++) {
+        connectionsTables.value[selectedConnection.value.id].schemas.add(res[i].schema);
+      }
+    } catch (error: unknown) {
+      if (typeof error === "string" && error === "connection not found") {
+      }
+      console.log("error", error);
+    }
+  }
+
   return {
     connections,
     activeConnections,
     selectedConnection,
+    connectionsTables,
+    selectedConnectionTables,
+    selectedConnectionSchemas,
     getConnections,
     createConnection,
     updateConnection,
@@ -83,5 +128,6 @@ export const useConnectionStore = defineStore("connection", () => {
     connectToDatabase,
     disconnectFromDatabase,
     getActiveConnections,
+    getTables,
   };
 });

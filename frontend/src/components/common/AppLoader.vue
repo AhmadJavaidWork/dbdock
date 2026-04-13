@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useLoaderStore } from "@/stores/loader";
+import { useLoaderStore } from "@/stores/loader.store";
 </script>
 
 <template>

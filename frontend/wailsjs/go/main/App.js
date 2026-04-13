@@ -34,12 +34,24 @@ export function GetThemeConfig() {
   return window['go']['main']['App']['GetThemeConfig']();
 }
 
+export function IsConnected(arg1) {
+  return window['go']['main']['App']['IsConnected'](arg1);
+}
+
+export function ListTables(arg1, arg2) {
+  return window['go']['main']['App']['ListTables'](arg1, arg2);
+}
+
 export function ReadDroppedFile(arg1) {
   return window['go']['main']['App']['ReadDroppedFile'](arg1);
 }
 
 export function Reload() {
   return window['go']['main']['App']['Reload']();
+}
+
+export function RunQuery(arg1, arg2) {
+  return window['go']['main']['App']['RunQuery'](arg1, arg2);
 }
 
 export function SetTheme(arg1) {
