@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import BaseIconButton from "@/components/buttons/BaseIconButton.vue";
 import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
+import IconChevronLeft from "@/components/icons/IconChevronLeft.vue";
+import IconChevronRight from "@/components/icons/IconChevronRight.vue";
+import IconTune from "@/components/icons/IconTune.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import TableColumn from "@/components/table/TableColumn.vue";
 import { useToast } from "@/composables/useToast";
+import { MAX_ROWS } from "@/constants/app";
 import { getTableData } from "@/services/connection-manager.service";
 import { useConnectionStore } from "@/stores/connection.store";
 import { Column } from "@/types/column.types";
@@ -30,29 +35,34 @@ const visibleCount = ref(0);
 const columns = ref<Column[]>([]);
 const tableData = ref<Result<Column[]>>();
 
+const tuning = ref<boolean>(false);
 const limit = ref<number>(100);
 const offset = ref<number>(0);
-const pageNumber = ref<number>(1);
-const curPageNumber = ref<number>(1);
 
-const totalPages = computed(function () {
-  if (!tableData.value) return 1;
-  return Math.ceil(tableData.value.total / limit.value);
+const appliedLimit = ref<number>(100);
+const appliedOffset = ref<number>(0);
+
+const totalRows = computed(function () {
+  if (!tableData.value) return 0;
+  return tableData.value.total;
 });
 
 const v$ = useVuelidate(
   {
-    pageNumber: {
-      min: minValue(1),
-      max: helpers.withMessage("Page doesn't exist", maxValue(totalPages)),
+    limit: {
+      min: minValue(0),
+      max: helpers.withMessage(`Limit cannot be more than ${MAX_ROWS}`, maxValue(MAX_ROWS)),
+    },
+    offset: {
+      min: minValue(0),
+      max: helpers.withMessage("Offset cannot be more than total", maxValue(totalRows)),
     },
   },
-  { pageNumber }
+  { limit, offset }
 );
 
-const pageNumError = computed(
-  (): string => v$.value.pageNumber.$errors[0]?.$message.toString() ?? null
-);
+const limitError = computed((): string => v$.value.limit.$errors[0]?.$message.toString() ?? null);
+const offsetError = computed((): string => v$.value.offset.$errors[0]?.$message.toString() ?? null);
 
 function onScroll(e: Event) {
   const el = e.target as HTMLElement;
@@ -62,7 +72,7 @@ function onScroll(e: Event) {
   end.value = start.value + visibleCount.value + 5;
 }
 
-async function goTo(page: number): Promise<void> {
+async function goTo(curLimit: number, curOffset: number): Promise<void> {
   try {
     if (!selectedConnection.value || !table) return;
 
@@ -70,21 +80,22 @@ async function goTo(page: number): Promise<void> {
     if (!isValid) return;
 
     columns.value = [];
-    offset.value = (page - 1) * limit.value;
 
     tableData.value = await getTableData(
       selectedConnection.value.id,
       selectedConnection.value.databaseDriver.name,
       table.name,
-      limit.value,
-      offset.value,
+      curLimit,
+      curOffset,
       "",
       "ASC"
     );
 
     columns.value = tableData.value.result;
-    curPageNumber.value = page;
-    pageNumber.value = page;
+    appliedLimit.value = curLimit;
+    appliedOffset.value = curOffset;
+    limit.value = curLimit;
+    offset.value = curOffset;
 
     initViewport();
   } catch (error) {
@@ -95,8 +106,7 @@ async function goTo(page: number): Promise<void> {
 watch(
   () => table,
   function () {
-    goTo(1);
-    pageNumber.value = 1;
+    goTo(100, 0);
   },
   { immediate: true }
 );
@@ -127,28 +137,60 @@ function initViewport(): void {
       v-if="table"
       class="px-[20px] flex justify-between items-center h-[60px] shrink-0 border-t border-textfield-border-light dark:border-textfield-border-dark"
     >
-      Showing {{ offset + 1 }} - {{ offset + limit }} of {{ tableData?.total }}
-      <div class="flex items-center gap-[10px]">
-        <BasePrimaryButton :disabled="curPageNumber === 1" @click="goTo(curPageNumber - 1)">
-          Previous
-        </BasePrimaryButton>
-        <BaseTextField
-          class="w-[100px]"
-          name="pageNumber"
-          v-model="pageNumber"
-          type="number"
-          :max="totalPages"
-          :error="pageNumError"
-          :should-show-erorr="false"
-          @submit="goTo(pageNumber)"
-          @blur="pageNumber = curPageNumber"
-        ></BaseTextField>
-        <BasePrimaryButton
-          :disabled="curPageNumber === totalPages"
-          @click="goTo(curPageNumber + 1)"
+      Showing {{ Math.min(appliedOffset + 1, tableData?.total as number) }} -
+      {{ Math.min(appliedOffset + appliedLimit, tableData?.total as number) }} of
+      {{ tableData?.total }}
+      <div class="flex items-center">
+        <BaseIconButton
+          class="h-[35px]"
+          :disabled="appliedOffset - appliedLimit <= -appliedLimit"
+          @click="goTo(appliedLimit, Math.max(appliedOffset - appliedLimit, 0))"
         >
-          Next
-        </BasePrimaryButton>
+          <IconChevronLeft class="w-[25px] h-[25px]" />
+        </BaseIconButton>
+        <div class="relative inline-block h-[35px]">
+          <BaseIconButton class="h-[35px]" @click="tuning = !tuning">
+            <IconTune class="w-[25px] h-[25px]" />
+          </BaseIconButton>
+          <div
+            v-show="tuning"
+            class="absolute right-0 bottom-full z-50 bg-background-light dark:bg-background-dark border border-textfield-border-light dark:border-textfield-border-dark rounded shadow-lg p-3 flex flex-col gap-[10px]"
+          >
+            <BaseTextField
+              class="w-[200px] flex items-center gap-[17px]"
+              label="Limit:"
+              name="limit"
+              v-model="limit"
+              type="number"
+              :max="MAX_ROWS"
+              :error="limitError"
+              :should-show-erorr="false"
+            ></BaseTextField>
+            <BaseTextField
+              class="w-[200px] flex items-center gap-[10px]"
+              label="Offset:"
+              name="offset"
+              v-model="offset"
+              type="number"
+              :max="totalRows"
+              :error="offsetError"
+              :should-show-erorr="false"
+            ></BaseTextField>
+            <BasePrimaryButton
+              :disabled="limit === appliedLimit && offset === appliedOffset"
+              @click="goTo(limit, offset)"
+            >
+              Apply
+            </BasePrimaryButton>
+          </div>
+        </div>
+        <BaseIconButton
+          class="h-[35px]"
+          :disabled="appliedOffset + appliedLimit >= (tableData?.total || 0)"
+          @click="goTo(appliedLimit, Math.min(appliedOffset + appliedLimit, tableData?.total || 0))"
+        >
+          <IconChevronRight class="w-[25px] h-[25px]" />
+        </BaseIconButton>
       </div>
     </div>
   </div>

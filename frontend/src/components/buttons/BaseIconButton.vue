@@ -26,7 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const buttonClasses = computed(() => {
-  const base = `py-auto px-[7px] font-medium rounded transition-colors duration-200 dark:text-dark dark:hover:opacity-90 dark:focus-visible:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none`;
+  const base = `py-auto px-[7px] font-medium rounded transition-colors duration-200 dark:text-dark dark:hover:opacity-90 dark:focus-visible:opacity-90 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50`;
 
   if (variant === "primary") {
     return `${base} text-text-light bg-white border border-primary hover:bg-primary-light focus-visible:bg-primary-light dark:text-text-dark dark:border-0 dark:bg-secondary dark:hover:bg-secondary-dark-hover dark:focus-visible:bg-secondary-dark-hover`;
