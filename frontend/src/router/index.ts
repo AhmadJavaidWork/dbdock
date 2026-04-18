@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "/",
         name: "Welcome",
-        component: import("@/pages/welcome.page.vue"),
+        component: () => import("@/pages/welcome.page.vue"),
       },
     ],
   },
@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "",
         name: "Connections",
-        component: import("@/pages/connection.page.vue"),
+        component: () => import("@/pages/connection.page.vue"),
       },
     ],
     beforeEnter: async function (to: RouteLocationNormalizedGeneric) {
