@@ -81,19 +81,16 @@ function stopResize() {
 </script>
 
 <template>
-  <div
-    :class="[
-      'relative flex-shrink-0 border-r border-textfield-border-light dark:border-textfield-border-dark flex flex-col h-full',
-    ]"
-    :style="{ width: width + 'px' }"
-  >
+  <div :class="['relative flex-shrink-0 flex flex-col h-full']" :style="{ width: width + 'px' }">
     <div
-      class="absolute top-0 right-0 w-[4px] h-full cursor-col-resize hover:bg-primary/30"
+      class="absolute right-0 w-[4px] h-full cursor-col-resize hover:bg-primary/30 z-10"
       @mousedown="startResize"
       @dblclick="width = 300"
-    ></div>
+    >
+      <div class="w-[0px] h-full bg-transparent group-hover:bg-primary/40 mx-auto" />
+    </div>
     <div
-      class="text-center p-[5px] font-bold border-b border-textfield-border-light dark:border-textfield-border-dark"
+      class="text-center p-[5px] font-bold border-r border-b border-textfield-border-light dark:border-textfield-border-dark"
     >
       {{ col.name }}
     </div>
@@ -104,7 +101,7 @@ function stopResize() {
         <div
           v-for="(row, i) in visibleRows"
           :key="i"
-          class="truncate p-[5px] border-b border-textfield-border-light dark:border-textfield-border-dark"
+          class="truncate p-[5px] border-r border-b border-textfield-border-light dark:border-textfield-border-dark"
           :style="{ height: rowHeight + 'px' }"
         >
           {{ row }}
