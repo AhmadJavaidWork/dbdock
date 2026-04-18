@@ -164,37 +164,37 @@ func (cm *ConnectionManager) ListTables(connectionID int, driver string) ([]mode
 	return provider.ListTables(dbConn)
 }
 
-func (cm *ConnectionManager) GetTableData(connectionID int, driver string, table string, limit, offset int, orderBy string, order models.Order) ([]models.Column, error) {
+func (cm *ConnectionManager) GetTableData(connectionID int, driver string, table string, limit, offset int, orderBy string, order models.Order) (models.Result[[]models.Column], error) {
 	cm.mu.Lock()
 	dbConn, exists := cm.connections[connectionID]
 	cm.mu.Unlock()
 
 	if !exists {
-		return nil, fmt.Errorf("connection not found")
+		return models.Result[[]models.Column]{}, fmt.Errorf("connection not found")
 	}
 
 	provider, err := schema.GetSchemaProvider(driver)
 	if err != nil {
-		return nil, err
+		return models.Result[[]models.Column]{}, err
 	}
 
 	tables, err := provider.ListTables(dbConn)
 	if err != nil {
-		return nil, err
+		return models.Result[[]models.Column]{}, err
 	}
 
 	for i, t := range tables {
 		if t.Name == table {
 			break
 		} else if i == len(tables)-1 {
-			return nil, fmt.Errorf("\"%s\" table not found", table)
+			return models.Result[[]models.Column]{}, fmt.Errorf("\"%s\" table not found", table)
 		}
 	}
 
 	if orderBy == "" {
 		orderBy, err = provider.GetPrimaryKey(dbConn, table)
 		if err != nil {
-			return nil, err
+			return models.Result[[]models.Column]{}, err
 		}
 		order = models.ASC
 	}

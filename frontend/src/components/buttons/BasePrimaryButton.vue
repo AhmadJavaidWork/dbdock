@@ -26,7 +26,7 @@ const emit = defineEmits<{
 }>();
 
 const buttonClasses = computed(() => {
-  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 text-white dark:text-gray-100 disabled:cursor-not-allowed disabled:pointer-events-none`;
+  const base = `px-[20px] py-[8px] font-medium rounded transition-colors duration-200 text-white dark:text-gray-100 disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50`;
 
   if (variant === "primary") {
     return `${base} bg-primary hover:bg-primary-hover focus-visible:bg-primary-hover dark:bg-primary-dark dark:hover:bg-primary-dark-hover dark:focus-visible:bg-primary-dark-hover`;

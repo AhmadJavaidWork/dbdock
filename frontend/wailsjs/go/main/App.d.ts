@@ -16,7 +16,7 @@ export function GetConnections():Promise<Array<models.ConnectionWithStatus>>;
 
 export function GetSupportedDatabases():Promise<Array<models.DatabaseDriver>>;
 
-export function GetTableData(arg1:number,arg2:string,arg3:string,arg4:number,arg5:number,arg6:string,arg7:models.Order):Promise<Array<models.Column>>;
+export function GetTableData(arg1:number,arg2:string,arg3:string,arg4:number,arg5:number,arg6:string,arg7:models.Order):Promise<models.Result___DBDock_models_Column_>;
 
 export function GetThemeConfig():Promise<models.ThemeConfig>;
 

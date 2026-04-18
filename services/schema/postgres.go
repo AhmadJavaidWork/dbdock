@@ -55,7 +55,7 @@ func (p *PostgresProvider) GetPrimaryKey(db *sql.DB, table string) (string, erro
 	return key, err
 }
 
-func (p *PostgresProvider) GetTableData(db *sql.DB, table string, limit int, offset int, orderBy string, order models.Order) ([]models.Column, error) {
+func (p *PostgresProvider) GetTableData(db *sql.DB, table string, limit int, offset int, orderBy string, order models.Order) (models.Result[[]models.Column], error) {
 	query := fmt.Sprintf(`
 		SELECT *
 		FROM public.%s
@@ -65,13 +65,21 @@ func (p *PostgresProvider) GetTableData(db *sql.DB, table string, limit int, off
 
 	rows, err := db.Query(query, limit, offset)
 	if err != nil {
-		return nil, err
+		return models.Result[[]models.Column]{}, err
 	}
 	defer rows.Close()
 
+	var total int64
+
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM public.%s`, table)
+	err = db.QueryRow(countQuery).Scan(&total)
+	if err != nil {
+		return models.Result[[]models.Column]{}, err
+	}
+
 	cols, err := rows.Columns()
 	if err != nil {
-		return nil, err
+		return models.Result[[]models.Column]{}, err
 	}
 
 	results := make([]models.Column, len(cols))
@@ -91,7 +99,7 @@ func (p *PostgresProvider) GetTableData(db *sql.DB, table string, limit int, off
 		}
 
 		if err := rows.Scan(ptrs...); err != nil {
-			return nil, err
+			return models.Result[[]models.Column]{}, err
 		}
 
 		for i, val := range values {
@@ -99,5 +107,8 @@ func (p *PostgresProvider) GetTableData(db *sql.DB, table string, limit int, off
 		}
 	}
 
-	return results, nil
+	return models.Result[[]models.Column]{
+		Result: results,
+		Total:  total,
+	}, nil
 }

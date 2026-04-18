@@ -1,6 +1,6 @@
 import { Column } from "@/types/column.types";
 import { CreateDBConnection, DBConnection } from "@/types/connection.type";
-import { Order } from "@/types/query.types";
+import { Order, Result } from "@/types/query.types";
 import { Table } from "@/types/table.types";
 import {
   ConnectToDatabase,
@@ -44,7 +44,7 @@ export function getTableData(
   offset: number,
   orderBy: string,
   order: Order
-): Promise<Column[]> {
+): Promise<Result<Column[]>> {
   return GetTableData(id, driver, tableName, limit, offset, orderBy, order);
 }
 

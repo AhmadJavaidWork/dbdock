@@ -10,6 +10,7 @@ const {
   error = null,
   type = "text",
   tabindex = 1,
+  shouldShowErorr = true,
 } = defineProps<{
   name: string;
   label?: string;
@@ -19,10 +20,14 @@ const {
   error?: string | null;
   type?: string;
   tabindex?: string | number;
+  max?: string | number;
+  shouldShowErorr?: boolean;
 }>();
 
 const emit = defineEmits<{
   focus: [event: FocusEvent];
+  submit: [event: KeyboardEvent];
+  blur: [event: FocusEvent];
 }>();
 
 const model = defineModel<string | number | null>({ required: true });
@@ -49,6 +54,7 @@ defineExpose<{
       :type="type"
       :placeholder="placeholder"
       :maxlength="maxlength"
+      :max="max"
       :class="[
         'rounded w-full p-2 placeholder:text-sm min-h-[35px] ring-1 ring-inset outline-none',
         {
@@ -63,8 +69,10 @@ defineExpose<{
         },
       ]"
       @focus="emit('focus', $event)"
+      @keydown.enter="emit('submit', $event)"
+      @blur="emit('blur', $event)"
     />
-    <p v-if="error" class="text-text-danger text-sm mt-[3px]">
+    <p v-if="error && shouldShowErorr" class="text-text-danger text-sm mt-[3px]">
       {{ error }}
     </p>
   </div>

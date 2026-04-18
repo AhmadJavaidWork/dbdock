@@ -3,6 +3,7 @@ package schema
 import (
 	"DBDock/models"
 	"database/sql"
+	"fmt"
 )
 
 type MySQLProvider struct{}
@@ -52,7 +53,7 @@ func (m *MySQLProvider) GetPrimaryKey(db *sql.DB, table string) (string, error) 
 	return key, err
 }
 
-func (m *MySQLProvider) GetTableData(db *sql.DB, table string, limit int, offset int, orderBy string, order models.Order) ([]models.Column, error) {
+func (m *MySQLProvider) GetTableData(db *sql.DB, table string, limit int, offset int, orderBy string, order models.Order) (models.Result[[]models.Column], error) {
 	query := `
 		SELECT *
 		FROM ?
@@ -62,13 +63,21 @@ func (m *MySQLProvider) GetTableData(db *sql.DB, table string, limit int, offset
 
 	rows, err := db.Query(query, table, orderBy, order, limit, offset)
 	if err != nil {
-		return nil, err
+		return models.Result[[]models.Column]{}, err
 	}
 	defer rows.Close()
 
+	var total int64
+
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM public.%s`, table)
+	err = db.QueryRow(countQuery).Scan(&total)
+	if err != nil {
+		return models.Result[[]models.Column]{}, err
+	}
+
 	cols, err := rows.Columns()
 	if err != nil {
-		return nil, err
+		return models.Result[[]models.Column]{}, err
 	}
 
 	results := make([]models.Column, len(cols))
@@ -88,7 +97,7 @@ func (m *MySQLProvider) GetTableData(db *sql.DB, table string, limit int, offset
 		}
 
 		if err := rows.Scan(ptrs...); err != nil {
-			return nil, err
+			return models.Result[[]models.Column]{}, err
 		}
 
 		for i, val := range values {
@@ -96,5 +105,8 @@ func (m *MySQLProvider) GetTableData(db *sql.DB, table string, limit int, offset
 		}
 	}
 
-	return results, nil
+	return models.Result[[]models.Column]{
+		Result: results,
+		Total:  total,
+	}, nil
 }

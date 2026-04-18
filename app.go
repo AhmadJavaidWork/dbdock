@@ -185,6 +185,6 @@ func (a *App) IsConnected(connectionID int) bool {
 	return a.connectionManager.IsConnected(connectionID)
 }
 
-func (a *App) GetTableData(connectionID int, driver string, table string, limit, offset int, orderBy string, order models.Order) ([]models.Column, error) {
+func (a *App) GetTableData(connectionID int, driver string, table string, limit, offset int, orderBy string, order models.Order) (models.Result[[]models.Column], error) {
 	return a.connectionManager.GetTableData(connectionID, driver, table, limit, offset, orderBy, order)
 }
