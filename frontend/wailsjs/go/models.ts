@@ -1,5 +1,19 @@
 export namespace models {
 	
+	export class Column {
+	    name: string;
+	    rows: any[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Column(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.rows = source["rows"];
+	    }
+	}
 	export class DatabaseDriver {
 	    id: number;
 	    name: string;

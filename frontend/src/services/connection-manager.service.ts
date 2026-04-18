@@ -1,8 +1,11 @@
+import { Column } from "@/types/column.types";
 import { CreateDBConnection, DBConnection } from "@/types/connection.type";
+import { Order } from "@/types/query.types";
 import { Table } from "@/types/table.types";
 import {
   ConnectToDatabase,
   DisconnectFromDatabase,
+  GetTableData,
   IsConnected,
   ListTables,
   RunQuery,
@@ -33,10 +36,23 @@ export function isConnected(id: number): Promise<boolean> {
   return IsConnected(id);
 }
 
+export function getTableData(
+  id: number,
+  driver: string,
+  tableName: string,
+  limit: number,
+  offset: number,
+  orderBy: string,
+  order: Order
+): Promise<Column[]> {
+  return GetTableData(id, driver, tableName, limit, offset, orderBy, order);
+}
+
 export default {
   connectToDatabase,
   disconnectFromDatabase,
   runQuery,
   listTables,
   isConnected,
+  getTableData,
 };

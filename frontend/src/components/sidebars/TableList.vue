@@ -7,7 +7,9 @@ import { Table } from "@/types/table.types";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 
-const emit = defineEmits<{}>();
+const emit = defineEmits<{
+  "select-table": [table: Table];
+}>();
 
 const { selectedConnectionTables, selectedConnectionSchemas } = storeToRefs(useConnectionStore());
 
@@ -70,6 +72,11 @@ function stopResize() {
   document.body.style.cursor = "";
 }
 
+function selectTable(table: Table): void {
+  selectedTable.value = table;
+  emit("select-table", table);
+}
+
 onMounted(async function () {
   useConnectionStore().getTables();
 });
@@ -111,7 +118,7 @@ onMounted(async function () {
                 selectedTable?.name === t.name,
             },
           ]"
-          @click="selectedTable = t"
+          @click="selectTable(t)"
         >
           <h3 class="text-lg truncate" :title="t.name">
             {{ t.name }}
@@ -123,7 +130,7 @@ onMounted(async function () {
     <div
       class="p-4 border-t border-textfield-border-light dark:border-textfield-border-dark flex items-center justify-center"
     >
-      <BasePrimaryButton @click="useThemeStore().toggleTheme"> Toggle Theme </BasePrimaryButton>
+      <BasePrimaryButton @click="useThemeStore().toggleTheme">Toggle Theme</BasePrimaryButton>
     </div>
   </aside>
 </template>
