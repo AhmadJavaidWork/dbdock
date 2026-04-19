@@ -7,10 +7,10 @@ import IconTune from "@/components/icons/IconTune.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import TableColumn from "@/components/table/TableColumn.vue";
 import { useToast } from "@/composables/useToast";
-import { MAX_ROWS } from "@/constants/app";
+import { DEFAULT_COLUMN_WIDTH, DEFAULT_RECORD_LIMIT, MAX_ROWS } from "@/constants/app";
 import { getTableData } from "@/services/connection-manager.service";
 import { useConnectionStore } from "@/stores/connection.store";
-import { Column } from "@/types/column.types";
+import { Column, DisplayColumn } from "@/types/column.types";
 import { Result } from "@/types/query.types";
 import { Table } from "@/types/table.types";
 import { useVuelidate } from "@vuelidate/core";
@@ -32,14 +32,14 @@ const start = ref(0);
 const end = ref(0);
 const visibleCount = ref(0);
 
-const columns = ref<Column[]>([]);
+const columns = ref<DisplayColumn[]>([]);
 const tableData = ref<Result<Column[]>>();
 
 const tuning = ref<boolean>(false);
-const limit = ref<number>(100);
+const limit = ref<number>(DEFAULT_RECORD_LIMIT);
 const offset = ref<number>(0);
 
-const appliedLimit = ref<number>(100);
+const appliedLimit = ref<number>(DEFAULT_RECORD_LIMIT);
 const appliedOffset = ref<number>(0);
 
 const totalRows = computed(function () {
@@ -91,7 +91,18 @@ async function goTo(curLimit: number, curOffset: number): Promise<void> {
       "ASC"
     );
 
-    columns.value = tableData.value.result;
+    columns.value = tableData.value.result.map<DisplayColumn>((c: Column) => {
+      return {
+        name: c.name,
+        rows: c.rows,
+        width: DEFAULT_COLUMN_WIDTH,
+        isResizing: false,
+        startX: 0,
+        startWidth: 0,
+        frameId: null,
+        pendingWidth: 0,
+      };
+    });
     appliedLimit.value = curLimit;
     appliedOffset.value = curOffset;
     limit.value = curLimit;
@@ -106,7 +117,7 @@ async function goTo(curLimit: number, curOffset: number): Promise<void> {
 watch(
   () => table,
   function () {
-    goTo(100, 0);
+    goTo(DEFAULT_RECORD_LIMIT, 0);
   },
   { immediate: true }
 );
@@ -119,11 +130,83 @@ function initViewport(): void {
 
   end.value = visibleCount.value;
 }
+
+function startResize(e: MouseEvent, index: number) {
+  e.preventDefault();
+  columns.value[index].isResizing = true;
+
+  columns.value[index].startX = e.clientX;
+  columns.value[index].startWidth = columns.value[index].width;
+
+  document.body.classList.add("resizing");
+
+  const moveHandler = (ev: MouseEvent) => resize(ev, index);
+  const upHandler = () => stopResize(index, moveHandler, upHandler);
+
+  window.addEventListener("mousemove", moveHandler);
+  window.addEventListener("mouseup", upHandler);
+}
+
+function resize(e: MouseEvent, index: number) {
+  const col = columns.value[index];
+  if (!col.isResizing) return;
+
+  const dx = e.clientX - col.startX;
+  col.pendingWidth = col.startWidth + dx;
+
+  if (col.frameId) return;
+
+  col.frameId = requestAnimationFrame(() => {
+    let newWidth = col.pendingWidth;
+
+    if (newWidth < 80) newWidth = 80;
+    if (newWidth > 600) newWidth = 600;
+
+    col.width = newWidth;
+
+    col.frameId = null;
+  });
+}
+
+function stopResize(index: number, moveHandler: any, upHandler: any) {
+  const col = columns.value[index];
+  col.isResizing = false;
+
+  document.body.classList.remove("resizing");
+
+  if (col.frameId) {
+    cancelAnimationFrame(col.frameId);
+    col.frameId = null;
+  }
+
+  window.removeEventListener("mousemove", moveHandler);
+  window.removeEventListener("mouseup", upHandler);
+
+  document.body.style.userSelect = "";
+  document.body.style.cursor = "";
+}
 </script>
 
 <template>
   <div class="h-full flex flex-col">
-    <div ref="scrollEl" class="flex-1 flex overflow-x-auto" @scroll="onScroll">
+    <div
+      class="sticky top-0 z-30 flex bg-background-light dark:bg-background-dark border-b border-textfield-border-light dark:border-textfield-border-dark"
+    >
+      <div
+        v-for="(col, index) in columns"
+        :key="col.name"
+        class="relative flex-shrink-0 text-center p-[5px] font-bold border-r border-textfield-border-light dark:border-textfield-border-dark"
+        :style="{ width: col.width + 'px' }"
+      >
+        {{ col.name }}
+        <div
+          class="absolute top-0 right-0 w-[4px] h-full cursor-col-resize hover:bg-primary/30 dark:hover:bg-primary-dark z-40"
+          @mousedown="startResize($event, index)"
+          @dblclick="col.width = DEFAULT_COLUMN_WIDTH"
+        ></div>
+      </div>
+    </div>
+    <div ref="scrollEl" class="flex-1 flex overflow-x-auto relative" @scroll="onScroll">
       <TableColumn
         v-for="col in columns"
         :key="col.name"
@@ -131,6 +214,7 @@ function initViewport(): void {
         :start="start"
         :end="end"
         :row-height="rowHeight"
+        :width="col.width"
       />
     </div>
     <div
