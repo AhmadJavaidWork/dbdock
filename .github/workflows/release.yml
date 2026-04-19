@@ -81,7 +81,26 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          cp -r build/bin/* dist/
+
+          echo "Listing build output:"
+          ls -R build/bin || true
+
+          # Linux
+          if [[ "${{ matrix.platform }}" == "linux/amd64" ]]; then
+            cp build/bin/DBDock dist/dbdock-linux-amd64
+          fi
+
+          # Windows
+          if [[ "${{ matrix.platform }}" == "windows/amd64" ]]; then
+            cp build/bin/DBDock.exe dist/dbdock-windows-amd64.exe
+          fi
+
+          # macOS (copy the FULL .app bundle)
+          if [[ "${{ matrix.platform }}" == "darwin/amd64" ]]; then
+            cp -r build/bin/DBDock.app dist/
+            zip -r dist/dbdock-darwin-amd64.zip dist/DBDock.app
+            rm -rf dist/DBDock.app
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
