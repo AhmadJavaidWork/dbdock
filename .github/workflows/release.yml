@@ -169,8 +169,8 @@ jobs:
           fi
 
           SHORT_SHA=$(git rev-parse --short HEAD)
-          VERSION="v$MAJOR.$MINOR.$PATCH-beta.${{ github.run_number }}+${SHORT_SHA}""
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          VERSION="v$MAJOR.$MINOR.$PATCH-beta.${{ github.run_number }}+${SHORT_SHA}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
