@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [ubuntu-latest, windows-latest, macos-latest]
+        platform: [linux/amd64, windows/amd64, darwin/amd64]
 
     runs-on: ${{ matrix.platform }}
 
@@ -44,7 +44,7 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir -p dist
-          mv build/bin/* dist/ || true
+          cp -r build/bin/* dist/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -71,6 +71,13 @@ jobs:
           SHORT_SHA=$(git rev-parse --short HEAD)
           VERSION="v0.1.0-beta.${{ github.run_number }}+${SHORT_SHA}"
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Git Tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${{ steps.version.outputs.VERSION }}
+          git push origin ${{ steps.version.outputs.VERSION }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
