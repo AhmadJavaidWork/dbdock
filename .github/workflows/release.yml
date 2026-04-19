@@ -40,10 +40,20 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.1-dev \
-            build-essential
+          sudo apt-get install -y libgtk-3-dev pkg-config build-essential
+
+          # Try installing required WebKit version
+          sudo apt-get install -y libwebkit2gtk-4.0-dev || \
+          sudo apt-get install -y libwebkit2gtk-4.1-dev
+
+      - name: Fix pkg-config for webkit
+        if: runner.os == 'Linux'
+        run: |
+          if [ ! -f /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc ]; then
+            echo "Creating compatibility symlink..."
+            sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
+                      /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
+          fi
 
       - name: Install dependencies
         run: |
