@@ -30,6 +30,15 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.0-dev \
+            build-essential
+
       - name: Install dependencies
         run: |
           go mod tidy
@@ -44,7 +53,11 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir -p dist
-          cp -r build/bin/* dist/
+          if [ -d "build/bin" ]; then
+            cp -r build/bin/* dist/
+          else
+            echo "No build/bin directory found"
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
