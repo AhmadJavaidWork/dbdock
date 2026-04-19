@@ -70,6 +70,7 @@ jobs:
         run: wails build -platform ${{ matrix.platform }}
 
       - name: Verify build output
+        shell: bash
         run: |
           if [ ! -d "build/bin" ]; then
             echo "❌ Build failed: build/bin not found"
