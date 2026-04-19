@@ -8,3 +8,7 @@ body.resizing {
   user-select: none;
   cursor: col-resize;
 }
+
+.no-select {
+  user-select: none;
+}

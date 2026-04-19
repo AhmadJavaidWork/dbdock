@@ -2,14 +2,11 @@
 import BasePrimaryButton from "@/components/buttons/BasePrimaryButton.vue";
 import BaseTextField from "@/components/inputs/BaseTextField.vue";
 import { useConnectionStore } from "@/stores/connection.store";
+import { useTabStore } from "@/stores/tab.store";
 import { useThemeStore } from "@/stores/theme.store";
 import { Table } from "@/types/table.types";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
-
-const emit = defineEmits<{
-  "select-table": [table: Table];
-}>();
 
 const { selectedConnectionTables, selectedConnectionSchemas } = storeToRefs(useConnectionStore());
 
@@ -18,6 +15,25 @@ const isResizing = ref<boolean>(false);
 
 let frameId: number | null = null;
 let pendingWidth = 0;
+let clickTimeout: number | null = null;
+
+function handleClick(table: Table) {
+  document.body.classList.add("no-select");
+  if (clickTimeout) clearTimeout(clickTimeout);
+
+  clickTimeout = window.setTimeout(() => {
+    selectTable(table, false);
+  }, 200);
+}
+
+function handleDblClick(table: Table) {
+  if (clickTimeout) {
+    clearTimeout(clickTimeout);
+    clickTimeout = null;
+  }
+
+  selectTable(table, true);
+}
 
 const search = ref<string>("");
 const selectedTable = ref<Table>();
@@ -72,9 +88,10 @@ function stopResize() {
   document.body.style.cursor = "";
 }
 
-function selectTable(table: Table): void {
+function selectTable(table: Table, attach: boolean): void {
+  document.body.classList.remove("no-select");
   selectedTable.value = table;
-  emit("select-table", table);
+  useTabStore().openTab(table, attach);
 }
 
 onMounted(async function () {
@@ -118,7 +135,8 @@ onMounted(async function () {
                 selectedTable?.name === t.name,
             },
           ]"
-          @click="selectTable(t)"
+          @click="handleClick(t)"
+          @dblclick.prevent="handleDblClick(t)"
         >
           <h3 class="text-lg truncate" :title="t.name">
             {{ t.name }}
