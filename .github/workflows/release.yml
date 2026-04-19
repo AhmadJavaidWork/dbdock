@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build:
@@ -113,6 +114,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          release-type: simple
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -122,18 +127,41 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Generate version
-        id: version
+      - name: Calculate next version
+        id: semver
         run: |
+          git fetch --tags
+
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+
+          echo "Last tag: $LAST_TAG"
+
+          MAJOR=$(echo $LAST_TAG | cut -d. -f1 | tr -d v)
+          MINOR=$(echo $LAST_TAG | cut -d. -f2)
+          PATCH=$(echo $LAST_TAG | cut -d. -f3)
+
+          COMMITS=$(git log $LAST_TAG..HEAD --pretty=format:"%s")
+
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE\|!:"; then
+            MAJOR=$((MAJOR+1))
+            MINOR=0
+            PATCH=0
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            MINOR=$((MINOR+1))
+            PATCH=0
+          else
+            PATCH=$((PATCH+1))
+          fi
+
           SHORT_SHA=$(git rev-parse --short HEAD)
-          VERSION="v0.1.0-beta.${{ github.run_number }}+${SHORT_SHA}"
+          VERSION="v$MAJOR.$MINOR.$PATCH-beta.${{ github.run_number }}+${SHORT_SHA}""
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.VERSION }}
-          name: 'Beta Release ${{ steps.version.outputs.VERSION }}'
+          tag_name: ${{ steps.semver.outputs.VERSION }}
+          name: Beta Release ${{ steps.semver.outputs.VERSION }}
           prerelease: true
           files: |
             dist/**/*
