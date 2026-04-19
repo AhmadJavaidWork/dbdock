@@ -132,9 +132,18 @@ jobs:
         run: |
           git fetch --tags
 
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          # get latest tag OR fallback
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
           echo "Last tag: $LAST_TAG"
+
+          if [ -z "$LAST_TAG" ]; then
+            echo "No tags found, using initial version"
+            LAST_TAG="v0.0.0"
+            COMMITS=$(git log --pretty=format:"%s")
+          else
+            COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"%s")
+          fi
 
           MAJOR=$(echo $LAST_TAG | cut -d. -f1 | tr -d v)
           MINOR=$(echo $LAST_TAG | cut -d. -f2)
