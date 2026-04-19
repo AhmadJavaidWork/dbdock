@@ -1,9 +1,9 @@
-name: Wails Beta Release
+name: DBDock Beta Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -41,7 +41,7 @@ jobs:
       - name: Build Wails app
         run: wails build -platform ${{ matrix.platform }}
 
-      - name: Rename artifact
+      - name: Prepare artifacts
         run: |
           mkdir -p dist
           mv build/bin/* dist/ || true
@@ -57,21 +57,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
 
-      - name: Create Beta Tag
-        id: tag
+      - name: Generate version
+        id: version
         run: |
-          echo "TAG=v0.1.0-beta.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          VERSION="v0.1.0-beta.${{ github.run_number }}+${SHORT_SHA}"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.TAG }}
-          name: 'Beta Release ${{ steps.tag.outputs.TAG }}'
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: 'Beta Release ${{ steps.version.outputs.VERSION }}'
           prerelease: true
           files: |
             dist/**/*
